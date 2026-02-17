@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.fugerit.java.demo</groupId>
+  <artifactId>lab-broken-access-control</artifactId>
+  <version>1.0.0</version>
+
+  <name>Broken Access Control Laboratory</name>
+  <description>Laboratorio per la risoluzione di vulnerabilità classificate come Broken Access Control, disponibile in versione Quarkus o SpringBoot</description>
+  <url>https://www.fugerit.org/perm/venus/</url>
+
+  <scm>
+    <connection>scm:git:git://github.com/lab-sca/lab-broken-access-control</connection>
+    <developerConnection>scm:git:ssh://github.com/lab-sca/lab-broken-access-control</developerConnection>
+    <url>https://github.com/lab-sca/lab-broken-access-control</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/lab-sca/lab-broken-access-control/issues</url>
+  </issueManagement>
+  
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Matteo Franci</name>
+      <email>mttfranci@gmail.com</email>
+      <url>https://github.com/lab-sca/</url>
+      <timezone>+1</timezone>
+      <organization>Secure Code Academy La</organization>
+      <organizationUrl>https://github.com/lab-sca/</organizationUrl>
+      <roles>
+        <role>IT Senior Consultant</role>
+        <role>Senior Software Architect</role>
+      </roles>
+    </developer>
+    <developer>
+      <name>Matteo Franci a.k.a. Fugerit</name>
+      <email>m@fugerit.org</email>
+      <url>https://github.com/fugerit-org</url>
+      <timezone>+1</timezone>
+      <organization>Fugerit</organization>
+      <organizationUrl>https://github.com/fugerit-org</organizationUrl>
+      <roles>
+        <role>IT Senior Consultant</role>
+        <role>Senior Software Architect</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <organization>
+    <url>https://github.com/lab-sca/</url>
+    <name>Secure Code Academy Lab</name>
+  </organization>
+
+  <url>https://github.com/lab-sca/</url>
+
+</project>

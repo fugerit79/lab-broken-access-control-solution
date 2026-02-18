@@ -3,6 +3,8 @@
 Un laboratorio educativo completo per testare e comprendere le vulnerabilità [Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) ([OWASP Top 10 #1](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) e [OWASP API Security Top 10 #1](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/))  nelle applicazioni Java.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](https://opensource.org/licenses/MIT)
+[![GitHub pages](https://img.shields.io/badge/GitHub-PAGES-blue.svg)](https://lab-sca.github.io/lab-broken-access-control/)
+[![Fork Me](https://img.shields.io/github/forks/lab-sca/lab-broken-access-control?style=social&label=Fork)](https://github.com/lab-sca/lab-broken-access-control/fork)
 
 ## 🚀 Scegli il tuo Framework
 

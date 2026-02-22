@@ -1,637 +1,660 @@
 ---
-# try also 'default' to start simple
-theme: seriph
-# random image from a curated Unsplash collection by Anthony
-# like them? see https://unsplash.com/collections/94734566/slidev
-background: https://cover.sli.dev
-# some information about your slides (markdown enabled)
-title: Welcome to Slidev
+theme: default
+title: "Lab: Broken Access Control"
+titleTemplate: '%s - Secure Code Academy'
 info: |
-  ## Slidev Starter Template
-  Presentation slides for developers.
-
-  Learn more at [Sli.dev](https://sli.dev)
-# apply UnoCSS classes to the current slide
-class: text-center
-# https://sli.dev/features/drawing
+  ## Secure Code Academy
+  Laboratorio su Broken Access Control (OWASP Top 10 #1)
+highlighter: shiki
+lineNumbers: true
 drawings:
   persist: false
-# slide transition: https://sli.dev/guide/animations.html#slide-transitions
 transition: slide-left
-# enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
-# duration of the presentation
-duration: 35min
+layout: cover
+background: https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1920&q=80
 ---
 
-# Welcome to Slidev
+# 🔐 Broken Access Control
 
-Presentation slides for developers
+**Secure Code Academy** — Laboratorio pratico
 
-<div @click="$slidev.nav.next" class="mt-12 py-1" hover:bg="white op-10">
-  Press Space for next page <carbon:arrow-right />
+<div class="pt-4 text-gray-300">
+  OWASP Top 10:2025 #1 · OWASP API Security 2023 #1
 </div>
 
-<div class="abs-br m-6 text-xl">
-  <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="slidev-icon-btn">
-    <carbon:edit />
-  </button>
-  <a href="https://github.com/slidevjs/slidev" target="_blank" class="slidev-icon-btn">
-    <carbon:logo-github />
+<div class="abs-br m-6 flex gap-2">
+  <a href="https://github.com/lab-sca/lab-broken-access-control" target="_blank" 
+     class="text-xl icon-btn opacity-50 !border-none !hover:text-white">
+    <carbon-logo-github />
   </a>
 </div>
 
-<!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes)
--->
-
 ---
-transition: fade-out
+layout: default
 ---
 
-# What is Slidev?
+# Agenda
 
-Slidev is a slides maker and presenter designed for developers, consist of the following features
+<div class="grid grid-cols-2 gap-6 mt-4">
 
-- 📝 **Text-based** - focus on the content with Markdown, and then style them later
-- 🎨 **Themable** - themes can be shared and re-used as npm packages
-- 🧑‍💻 **Developer Friendly** - code highlighting, live coding with autocompletion
-- 🤹 **Interactive** - embed Vue components to enhance your expressions
-- 🎥 **Recording** - built-in recording and camera view
-- 📤 **Portable** - export to PDF, PPTX, PNGs, or even a hostable SPA
-- 🛠 **Hackable** - virtually anything that's possible on a webpage is possible in Slidev
-<br>
-<br>
+<div>
 
-Read more about [Why Slidev?](https://sli.dev/guide/why)
+### Teoria
+1. 🎯 Cos'è il Broken Access Control
+2. 📊 Dati e impatto (OWASP 2025)
+3. 🔎 Tipologie di vulnerabilità
+4. 🌐 OWASP API Security: BOLA
+5. 🛡️ Remediation & Best Practice
 
-<!--
-You can have `style` tag in markdown to override the style for the current page.
-Learn more: https://sli.dev/features/slide-scope-style
--->
+</div>
 
-<style>
-h1 {
-  background-color: #2B90B6;
-  background-image: linear-gradient(45deg, #4EC5D4 10%, #146b8c 20%);
-  background-size: 100%;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
-}
-</style>
+<div>
 
-<!--
-Here is another comment.
--->
+### Pratica
+6. 🧪 Struttura del laboratorio
+7. 🔷 Versione Quarkus
+8. 🍃 Versione Spring Boot
+9. 💻 Scenari di attacco
+10. ✅ Verifica e soluzione
+
+</div>
+
+</div>
 
 ---
-transition: slide-up
-level: 2
+layout: section
 ---
 
-# Navigation
-
-Hover on the bottom-left corner to see the navigation's controls panel, [learn more](https://sli.dev/guide/ui#navigation-bar)
-
-## Keyboard Shortcuts
-
-|                                                     |                             |
-| --------------------------------------------------- | --------------------------- |
-| <kbd>right</kbd> / <kbd>space</kbd>                 | next animation or slide     |
-| <kbd>left</kbd>  / <kbd>shift</kbd><kbd>space</kbd> | previous animation or slide |
-| <kbd>up</kbd>                                       | previous slide              |
-| <kbd>down</kbd>                                     | next slide                  |
-
-<!-- https://sli.dev/guide/animations.html#click-animation -->
-<img
-  v-click
-  class="absolute -bottom-9 -left-7 w-80 opacity-50"
-  src="https://sli.dev/assets/arrow-bottom-left.svg"
-  alt=""
-/>
-<p v-after class="absolute bottom-23 left-45 opacity-30 transform -rotate-10">Here!</p>
+# Cos'è il Broken Access Control?
 
 ---
 layout: two-cols
-layoutClass: gap-16
 ---
 
-# Table of contents
+# Broken Access Control
 
-You can use the `Toc` component to generate a table of contents for your slides:
+Il controllo degli accessi garantisce che gli utenti **non possano agire al di fuori dei loro permessi previsti**.
 
-```html
-<Toc minDepth="1" maxDepth="1" />
-```
+Un fallimento di questo meccanismo porta tipicamente a:
 
-The title will be inferred from your slide content, or you can override it with `title` and `level` in your frontmatter.
+- **Divulgazione non autorizzata** di informazioni
+- **Modifica o distruzione** di dati altrui
+- **Esecuzione di funzioni privilegiate** senza averne il diritto
 
 ::right::
 
-<Toc text-sm minDepth="1" maxDepth="2" />
-
----
-layout: image-right
-image: https://cover.sli.dev
----
-
-# Code
-
-Use code snippets and get the highlighting directly, and even types hover!
-
-```ts [filename-example.ts] {all|4|6|6-7|9|all} twoslash
-// TwoSlash enables TypeScript hover information
-// and errors in markdown code blocks
-// More at https://shiki.style/packages/twoslash
-import { computed, ref } from 'vue'
-
-const count = ref(0)
-const doubled = computed(() => count.value * 2)
-
-doubled.value = 2
+<div style="transform: scale(0.7); transform-origin: top left;">
+```mermaid
+flowchart TD
+    U([👤 Utente]) --> R{Richiesta API}
+    R --> AC{Access Control Check}
+    AC -->|✅ Autorizzato| D[(Database)]
+    AC -->|❌ Non autorizzato| E[403 Forbidden]
+    AC -->|⚠️ ASSENTE o ROTTO| D
+    D --> RES([📄 Risposta])
+    
+    style AC fill:#ff6b6b,color:#fff
+    style E fill:#51cf66,color:#fff
+    style D fill:#339af0,color:#fff
 ```
-
-<arrow v-click="[4, 5]" x1="350" y1="310" x2="195" y2="342" color="#953" width="2" arrowSize="1" />
-
-<!-- This allow you to embed external code blocks -->
-<<< @/snippets/external.ts#snippet
-
-<!-- Footer -->
-
-[Learn more](https://sli.dev/features/line-highlighting)
-
-<!-- Inline style -->
-<style>
-.footnotes-sep {
-  @apply mt-5 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
-
-<!--
-Notes can also sync with clicks
-
-[click] This will be highlighted after the first click
-
-[click] Highlighted with `count = ref(0)`
-
-[click:3] Last click (skip two clicks)
--->
-
----
-level: 2
----
-
-# Shiki Magic Move
-
-Powered by [shiki-magic-move](https://shiki-magic-move.netlify.app/), Slidev supports animations across multiple code snippets.
-
-Add multiple code blocks and wrap them with <code>````md magic-move</code> (four backticks) to enable the magic move. For example:
-
-````md magic-move {lines: true}
-```ts {*|2|*}
-// step 1
-const author = reactive({
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-})
-```
-
-```ts {*|1-2|3-4|3-4,8}
-// step 2
-export default {
-  data() {
-    return {
-      author: {
-        name: 'John Doe',
-        books: [
-          'Vue 2 - Advanced Guide',
-          'Vue 3 - Basic Guide',
-          'Vue 4 - The Mystery'
-        ]
-      }
-    }
-  }
-}
-```
-
-```ts
-// step 3
-export default {
-  data: () => ({
-    author: {
-      name: 'John Doe',
-      books: [
-        'Vue 2 - Advanced Guide',
-        'Vue 3 - Basic Guide',
-        'Vue 4 - The Mystery'
-      ]
-    }
-  })
-}
-```
-
-Non-code blocks are ignored.
-
-```vue
-<!-- step 4 -->
-<script setup>
-const author = {
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-}
-</script>
-```
-````
-
----
-
-# Components
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-You can use Vue components directly inside your slides.
-
-We have provided a few built-in components like `<Tweet/>` and `<Youtube/>` that you can use directly. And adding your custom components is also super easy.
-
-```html
-<Counter :count="10" />
-```
-
-<!-- ./components/Counter.vue -->
-<Counter :count="10" m="t-4" />
-
-Check out [the guides](https://sli.dev/builtin/components.html) for more.
-
-</div>
-<div>
-
-```html
-<Tweet id="1390115482657726468" />
-```
-
-<Tweet id="1390115482657726468" scale="0.65" />
-
-</div>
 </div>
 
-<!--
-Presenter note with **bold**, *italic*, and ~~striked~~ text.
+---
+layout: default
+---
 
-Also, HTML elements are valid:
-<div class="flex w-full">
-  <span style="flex-grow: 1;">Left content</span>
-  <span>Right content</span>
+# OWASP Top 10:2025 — #1
+
+<div class="grid grid-cols-3 gap-4 mt-6">
+
+<div class="bg-red-900 bg-opacity-40 rounded-lg p-4 border border-red-500">
+  <div class="text-3xl font-bold text-red-400">100%</div>
+  <div class="text-sm mt-1">delle applicazioni testate presenta qualche forma di BAC</div>
 </div>
--->
 
----
-class: px-20
----
+<div class="bg-orange-900 bg-opacity-40 rounded-lg p-4 border border-orange-500">
+  <div class="text-3xl font-bold text-orange-400">1.8M+</div>
+  <div class="text-sm mt-1">occorrenze rilevate nei dati raccolti</div>
+</div>
 
-# Themes
-
-Slidev comes with powerful theming support. Themes can provide styles, layouts, components, or even configurations for tools. Switching between themes by just **one edit** in your frontmatter:
-
-<div grid="~ cols-2 gap-2" m="t-2">
-
-```yaml
----
-theme: default
----
-```
-
-```yaml
----
-theme: seriph
----
-```
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-default/01.png?raw=true" alt="">
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-seriph/01.png?raw=true" alt="">
+<div class="bg-yellow-900 bg-opacity-40 rounded-lg p-4 border border-yellow-500">
+  <div class="text-3xl font-bold text-yellow-400">32.654</div>
+  <div class="text-sm mt-1">CVE correlati — il secondo numero più alto in assoluto</div>
+</div>
 
 </div>
 
-Read more about [How to use a theme](https://sli.dev/guide/theme-addon#use-theme) and
-check out the [Awesome Themes Gallery](https://sli.dev/resources/theme-gallery).
+<div class="mt-6 text-sm text-gray-400">
 
----
-
-# Clicks Animations
-
-You can add `v-click` to elements to add a click animation.
-
-<div v-click>
-
-This shows up when you click the slide:
-
-```html
-<div v-click>This shows up when you click the slide.</div>
-```
+| Metrica | Valore |
+|--------|--------|
+| CWE mappate | 40 |
+| Max Incidence Rate | 20,15% |
+| Avg Weighted Exploit | 7,04 / 10 |
+| Avg Weighted Impact | 3,84 / 10 |
 
 </div>
+
+<div class="mt-4 text-xs text-gray-500">
+  Fonte: <a href="https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/" class="text-blue-400">OWASP Top 10:2025 — A01</a>
+</div>
+
+---
+layout: default
+---
+
+# Tipologie di Vulnerabilità
+
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
+
+<div class="bg-gray-800 rounded-lg p-3 border-l-4 border-red-500">
+  <div class="font-bold text-red-400">🔓 Violazione del Least Privilege</div>
+  <div class="mt-1 text-gray-300">Risorse accessibili a chiunque invece che solo agli utenti autorizzati</div>
+</div>
+
+<div class="bg-gray-800 rounded-lg p-3 border-l-4 border-orange-500">
+  <div class="font-bold text-orange-400">🔗 IDOR — Insecure Direct Object Reference</div>
+  <div class="mt-1 text-gray-300">Accedere all'account altrui modificando un ID nella richiesta</div>
+</div>
+
+<div class="bg-gray-800 rounded-lg p-3 border-l-4 border-yellow-500">
+  <div class="font-bold text-yellow-400">🚀 Privilege Escalation</div>
+  <div class="mt-1 text-gray-300">Agire come utente non autenticato, o ottenere privilegi admin senza averne diritto</div>
+</div>
+
+<div class="bg-gray-800 rounded-lg p-3 border-l-4 border-purple-500">
+  <div class="font-bold text-purple-400">🌐 CORS Misconfiguration</div>
+  <div class="mt-1 text-gray-300">Configurazione errata che permette accesso API da origini non autorizzate</div>
+</div>
+
+<div class="bg-gray-800 rounded-lg p-3 border-l-4 border-blue-500">
+  <div class="font-bold text-blue-400">🔑 JWT / Metadata Manipulation</div>
+  <div class="mt-1 text-gray-300">Replay o tampering di token JWT per elevare i propri privilegi</div>
+</div>
+
+<div class="bg-gray-800 rounded-lg p-3 border-l-4 border-green-500">
+  <div class="font-bold text-green-400">🗺️ Force Browsing</div>
+  <div class="mt-1 text-gray-300">Accedere direttamente a URL privilegiati senza autenticazione</div>
+</div>
+
+</div>
+
+---
+layout: default
+---
+
+# Come Funziona un Attacco IDOR
+
+<div style="transform: scale(0.7); transform-origin: top left;">
+```mermaid
+sequenceDiagram
+    actor Attacker as 👿 Attaccante
+    participant API as 🖥️ API Server
+    participant DB as 🗄️ Database
+
+    Note over Attacker: L'attaccante è autenticato come user_id=42
+    
+    Attacker->>API: GET /api/documents/100 (proprio documento)
+    API->>DB: SELECT * FROM docs WHERE id=100
+    DB-->>API: { id:100, owner:42, content:"..." }
+    API-->>Attacker: ✅ 200 OK — documento ricevuto
+
+    Note over Attacker: Modifica l'ID nella richiesta...
+    
+    Attacker->>API: GET /api/documents/101 (documento altrui!)
+    API->>DB: SELECT * FROM docs WHERE id=101
+    Note over API: ⚠️ Nessun controllo owner == current_user!
+    DB-->>API: { id:101, owner:99, content:"SEGRETO" }
+    API-->>Attacker: ✅ 200 OK — dati rubati! 😱
+```
+</div>
+
+---
+layout: section
+---
+
+# OWASP API Security Top 10
+## API1:2023 — Broken Object Level Authorization (BOLA)
+
+---
+layout: two-cols
+---
+
+# BOLA — Perché le API sono a rischio
+
+Le API sono particolarmente vulnerabili perché:
+
+- Il server **non traccia lo stato** del client
+- Le decisioni di accesso si basano su **parametri inviati dal client** (object ID, VIN, documentId...)
+- La risposta HTTP è spesso **sufficiente** per capire se l'attacco ha avuto successo
 
 <br>
 
-<v-click>
+> **BOLA ≠ BFLA**  
+> In BOLA l'endpoint è accessibile, il problema è a livello di **oggetto**.  
+> In BFLA (API5) l'utente non dovrebbe accedere all'endpoint stesso.
 
-The <span v-mark.red="3"><code>v-mark</code> directive</span>
-also allows you to add
-<span v-mark.circle.orange="4">inline marks</span>
-, powered by [Rough Notation](https://roughnotation.com/):
+::right::
 
-```html
-<span v-mark.underline.orange>inline markers</span>
+### Scenario reale
+
+```http
+# Utente autenticato accede al proprio profilo
+GET /api/v1/users/1337/profile
+Authorization: Bearer eyJ...
+
+# Attaccante prova ad accedere ad altri utenti
+GET /api/v1/users/1338/profile  ← ID modificato
+GET /api/v1/users/1/profile     ← Prova admin!
+Authorization: Bearer eyJ...    ← Stesso token!
 ```
 
-</v-click>
+<br>
 
-<div mt-20 v-click>
-
-[Learn more](https://sli.dev/guide/animations#click-animation)
-
-</div>
+**Rischi concreti:**
+- Data breach
+- Manipolazione dati altrui
+- Account takeover completo
 
 ---
-
-# Motions
-
-Motion animations are powered by [@vueuse/motion](https://motion.vueuse.org/), triggered by `v-motion` directive.
-
-```html
-<div
-  v-motion
-  :initial="{ x: -80 }"
-  :enter="{ x: 0 }"
-  :click-3="{ x: 80 }"
-  :leave="{ x: 1000 }"
->
-  Slidev
-</div>
-```
-
-<div class="w-60 relative">
-  <div class="relative w-40 h-40">
-    <img
-      v-motion
-      :initial="{ x: 800, y: -100, scale: 1.5, rotate: -50 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-square.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ y: 500, x: -100, scale: 2 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-circle.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ x: 600, y: 400, scale: 2, rotate: 100 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-triangle.png"
-      alt=""
-    />
-  </div>
-
-  <div
-    class="text-5xl absolute top-14 left-40 text-[#2B90B6] -z-1"
-    v-motion
-    :initial="{ x: -80, opacity: 0}"
-    :enter="{ x: 0, opacity: 1, transition: { delay: 2000, duration: 1000 } }">
-    Slidev
-  </div>
-</div>
-
-<!-- vue script setup scripts can be directly used in markdown, and will only affects current page -->
-<script setup lang="ts">
-const final = {
-  x: 0,
-  y: 0,
-  rotate: 0,
-  scale: 1,
-  transition: {
-    type: 'spring',
-    damping: 10,
-    stiffness: 20,
-    mass: 2
-  }
-}
-</script>
-
-<div
-  v-motion
-  :initial="{ x:35, y: 30, opacity: 0}"
-  :enter="{ y: 0, opacity: 1, transition: { delay: 3500 } }">
-
-[Learn more](https://sli.dev/guide/animations.html#motion)
-
-</div>
-
+layout: default
 ---
 
-# $\LaTeX$
-
-$\LaTeX$ is supported out-of-box. Powered by [$\KaTeX$](https://katex.org/).
-
-<div h-3 />
-
-Inline $\sqrt{3x-1}+(1+x)^2$
-
-Block
-$$ {1|3|all}
-\begin{aligned}
-\nabla \cdot \vec{E} &= \frac{\rho}{\varepsilon_0} \\
-\nabla \cdot \vec{B} &= 0 \\
-\nabla \times \vec{E} &= -\frac{\partial\vec{B}}{\partial t} \\
-\nabla \times \vec{B} &= \mu_0\vec{J} + \mu_0\varepsilon_0\frac{\partial\vec{E}}{\partial t}
-\end{aligned}
-$$
-
-[Learn more](https://sli.dev/features/latex)
-
----
-
-# Diagrams
-
-You can create diagrams / graphs from textual descriptions, directly in your Markdown.
-
-<div class="grid grid-cols-4 gap-5 pt-4 -mb-6">
-
-```mermaid {scale: 0.5, alt: 'A simple sequence diagram'}
-sequenceDiagram
-    Alice->John: Hello John, how are you?
-    Note over Alice,John: A typical interaction
-```
-
-```mermaid {theme: 'neutral', scale: 0.8}
-graph TD
-B[Text] --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
+# Confronto: OWASP Top 10 vs API Security
 
 ```mermaid
-mindmap
-  root((mindmap))
-    Origins
-      Long history
-      ::icon(fa fa-book)
-      Popularisation
-        British popular psychology author Tony Buzan
-    Research
-      On effectiveness<br/>and features
-      On Automatic creation
-        Uses
-            Creative techniques
-            Strategic planning
-            Argument mapping
-    Tools
-      Pen and paper
-      Mermaid
+graph LR
+    subgraph TOP10["🌐 OWASP Top 10:2025"]
+        A01["A01 — Broken Access Control\n(100% applicazioni)"]
+    end
+    
+    subgraph API["🔌 OWASP API Security 2023"]
+        API1["API1 — BOLA\n(Object Level)"]
+        API5["API5 — BFLA\n(Function Level)"]
+        API3["API3 — Broken Object\nProperty Level Auth"]
+    end
+    
+    A01 -->|"include"| API1
+    A01 -->|"include"| API5
+    A01 -->|"include"| API3
+    
+    style A01 fill:#e03131,color:#fff
+    style API1 fill:#c2255c,color:#fff
+    style API5 fill:#862e9c,color:#fff
+    style API3 fill:#5c7cfa,color:#fff
 ```
 
-```plantuml {scale: 0.7}
-@startuml
+<div class="mt-4 text-sm text-gray-400">
+Il Broken Access Control nell'OWASP Top 10 è una categoria "ombrello" che copre tutti i sotto-tipi di autorizzazione rotta, inclusi quelli specifici per le API.
+</div>
 
-package "Some Group" {
-  HTTP - [First Component]
-  [Another Component]
+---
+layout: section
+---
+
+# Remediation & Best Practice
+
+---
+layout: default
+---
+
+# Come Prevenire il BAC
+
+<div class="grid grid-cols-2 gap-4 mt-2 text-sm">
+
+<div class="bg-green-900 bg-opacity-30 rounded-lg p-4 border border-green-600">
+
+### ✅ Lato Server
+- **Deny by default**: nega tutto ciò che non è esplicitamente permesso
+- Implementa i controlli di accesso **una sola volta** e riusali
+- Valida che l'utente sia il proprietario della risorsa (**record ownership**)
+- Centralizza la logica di autorizzazione (no duplicazioni!)
+
+</div>
+
+<div class="bg-blue-900 bg-opacity-30 rounded-lg p-4 border border-blue-600">
+
+### 🔑 Gestione Token e Sessioni
+- Invalida i session token **lato server** al logout
+- Usa JWT **short-lived** (breve durata)
+- Per JWT long-lived: usa **refresh token** con revoca OAuth2
+- Non basarti mai su claim del token senza validarli
+
+</div>
+
+<div class="bg-purple-900 bg-opacity-30 rounded-lg p-4 border border-purple-600">
+
+### 🌐 API & CORS
+- Disabilita il **directory listing** del server
+- Minimizza l'uso di CORS, configura allowed origins in modo restrittivo
+- Applica **rate limiting** su endpoint API e controller
+- Rimuovi backup e metadata (.git) dalla web root
+
+</div>
+
+<div class="bg-yellow-900 bg-opacity-30 rounded-lg p-4 border border-yellow-600">
+
+### 🧪 Test & Monitoring
+- Scrivi **unit e integration test** per il controllo accessi
+- **Logga** ogni fallimento di accesso e avvisa gli admin
+- Usa **GUID casuali** come ID degli oggetti (non ID sequenziali!)
+- Includi test di autorizzazione nelle pipeline CI/CD
+
+</div>
+
+</div>
+
+---
+layout: default
+---
+
+# Pattern di Autorizzazione: Esempio Java
+
+<div class="grid grid-cols-2 gap-4">
+
+<div>
+
+### ❌ Vulnerabile
+
+```java
+// IDOR: nessun controllo ownership
+@GET
+@Path("/documents/{id}")
+public Document getDocument(@PathParam("id") Long id) {
+    // Chiunque può leggere qualsiasi documento!
+    return documentRepository.findById(id);
 }
-
-node "Other Groups" {
-  FTP - [Second Component]
-  [First Component] --> FTP
-}
-
-cloud {
-  [Example 1]
-}
-
-database "MySql" {
-  folder "This is my folder" {
-    [Folder 3]
-  }
-  frame "Foo" {
-    [Frame 4]
-  }
-}
-
-[Another Component] --> [Example 1]
-[Example 1] --> [Folder 3]
-[Folder 3] --> [Frame 4]
-
-@enduml
 ```
 
 </div>
 
-Learn more: [Mermaid Diagrams](https://sli.dev/features/mermaid) and [PlantUML Diagrams](https://sli.dev/features/plantuml)
+<div>
 
----
-foo: bar
-dragPos:
-  square: 691,32,167,_,-16
----
+### ✅ Sicuro
 
-# Draggable Elements
-
-Double-click on the draggable elements to edit their positions.
-
-<br>
-
-###### Directive Usage
-
-```md
-<img v-drag="'square'" src="https://sli.dev/logo.png">
+```java
+@GET
+@Path("/documents/{id}")
+@RolesAllowed("user")
+public Document getDocument(
+    @PathParam("id") Long id,
+    @Context SecurityContext ctx) {
+    
+    Document doc = documentRepository.findById(id);
+    
+    // Verifica che l'utente sia il proprietario
+    String currentUser = ctx.getUserPrincipal().getName();
+    if (!doc.getOwner().equals(currentUser)) {
+        throw new ForbiddenException("Accesso negato");
+    }
+    return doc;
+}
 ```
 
-<br>
+</div>
 
-###### Component Usage
+</div>
 
-```md
-<v-drag text-3xl>
-  <div class="i-carbon:arrow-up" />
-  Use the `v-drag` component to have a draggable container!
-</v-drag>
+---
+layout: section
+---
+
+# Il Laboratorio
+
+---
+layout: default
+---
+
+# Struttura del Laboratorio
+
+<div style="transform: scale(0.7); transform-origin: top left;">
+```mermaid
+graph TD
+    MAIN["📦 lab-broken-access-control\n(Repository principale)"]
+    Q["🔷 lab-broken-access-control-quarkus\n(Versione Quarkus)"]
+    S["🍃 lab-broken-access-control-springboot\n(Versione Spring Boot)"]
+    
+    MAIN -->|fork / scegli| Q
+    MAIN -->|fork / scegli| S
+    
+    Q --> QT["Quarkus · MicroProfile\nJAX-RS · SmallRye JWT\nPanache · Fugerit Venus Doc"]
+    S --> ST["Spring Boot · Spring MVC\nOAuth2 Resource Server\nSpring Data JPA · Fugerit Venus Doc"]
+    
+    style MAIN fill:#1971c2,color:#fff
+    style Q fill:#4263eb,color:#fff
+    style S fill:#2f9e44,color:#fff
+```
+</div>
+
+<div class="mt-4 text-sm text-gray-400">
+  Repository principale: <a href="https://github.com/lab-sca/lab-broken-access-control" class="text-blue-400">github.com/lab-sca/lab-broken-access-control</a>
+</div>
+
+---
+layout: two-cols
+---
+
+# 🔷 Versione Quarkus
+
+**Cloud-native, supersonic, subatomic Java**
+
+### Quick Start
+
+```bash
+git clone https://github.com/lab-sca/\
+  lab-broken-access-control-quarkus.git
+cd lab-broken-access-control-quarkus
+mvn quarkus:dev
 ```
 
-<v-drag pos="663,206,261,_,-15">
-  <div text-center text-3xl border border-main rounded>
-    Double-click me!
+### Tecnologie
+
+- **Quarkus** + MicroProfile
+- **JAX-RS** per le REST API
+- **SmallRye JWT** per l'autenticazione
+- **Panache** per la persistenza
+- **Fugerit Venus Doc** per i report
+
+::right::
+
+# 🍃 Versione Spring Boot
+
+**Il framework Java più diffuso per microservizi**
+
+### Quick Start
+
+```bash
+git clone https://github.com/lab-sca/\
+  lab-broken-access-control-springboot.git
+cd lab-broken-access-control-springboot
+mvn spring-boot:run
+```
+
+### Tecnologie
+
+- **Spring Boot** standalone
+- **Spring MVC** per le REST API
+- **OAuth2 Resource Server** per JWT
+- **Spring Data JPA** per la persistenza
+- **Fugerit Venus Doc** per i report
+
+---
+layout: default
+---
+
+# Scenari di Attacco del Lab
+
+<div class="mt-4 space-y-3">
+
+<div class="bg-gray-800 rounded-lg p-4 border-l-4 border-red-500">
+  <div class="flex items-center gap-2">
+    <span class="text-red-400 font-bold">Scenario 1 — IDOR su Risorsa Personale</span>
+    <span class="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded">OWASP API1</span>
   </div>
-</v-drag>
+  <div class="mt-1 text-sm text-gray-300">
+    L'utente autenticato può accedere a documenti/risorse di altri utenti semplicemente modificando l'ID nel path della richiesta.
+  </div>
+</div>
 
-<img v-drag="'square'" src="https://sli.dev/logo.png">
+<div class="bg-gray-800 rounded-lg p-4 border-l-4 border-orange-500">
+  <div class="flex items-center gap-2">
+    <span class="text-orange-400 font-bold">Scenario 2 — Missing Authorization su Endpoint Admin</span>
+    <span class="text-xs bg-orange-900 text-orange-300 px-2 py-0.5 rounded">OWASP A01</span>
+  </div>
+  <div class="mt-1 text-sm text-gray-300">
+    Endpoint amministrativi accessibili senza la verifica del ruolo admin — un utente normale ottiene accesso privilegiato.
+  </div>
+</div>
 
-###### Draggable Arrow
+<div class="bg-gray-800 rounded-lg p-4 border-l-4 border-yellow-500">
+  <div class="flex items-center gap-2">
+    <span class="text-yellow-400 font-bold">Scenario 3 — JWT Claims Manipulation</span>
+    <span class="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded">OWASP A01</span>
+  </div>
+  <div class="mt-1 text-sm text-gray-300">
+    Manipolazione dei claims JWT per falsificare il ruolo utente o l'identità, sfruttando una validazione insufficiente lato server.
+  </div>
+</div>
 
-```md
-<v-drag-arrow two-way />
-```
-
-<v-drag-arrow pos="67,452,253,46" two-way op70 />
-
----
-src: ./pages/imported-slides.md
-hide: false
----
-
----
-
-# Monaco Editor
-
-Slidev provides built-in Monaco Editor support.
-
-Add `{monaco}` to the code block to turn it into an editor:
-
-```ts {monaco}
-import { ref } from 'vue'
-import { emptyArray } from './external'
-
-const arr = ref(emptyArray(10))
-```
-
-Use `{monaco-run}` to create an editor that can execute the code directly in the slide:
-
-```ts {monaco-run}
-import { version } from 'vue'
-import { emptyArray, sayHello } from './external'
-
-sayHello()
-console.log(`vue ${version}`)
-console.log(emptyArray<number>(10).reduce(fib => [...fib, fib.at(-1)! + fib.at(-2)!], [1, 1]))
-```
+</div>
 
 ---
-layout: center
-class: text-center
+layout: default
 ---
 
-# Learn More
+# Come Affrontare il Laboratorio
 
-[Documentation](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/resources/showcases)
+<div class="grid grid-cols-3 gap-4 mt-4 text-center text-sm">
 
-<PoweredBySlidev mt-10 />
+<div class="bg-gray-800 rounded-xl p-4">
+  <div class="text-3xl mb-2">1️⃣</div>
+  <div class="font-bold text-blue-400">Esplora</div>
+  <div class="mt-2 text-gray-300">Clona il repository, avvia l'applicazione e analizza le API disponibili con Swagger UI o curl</div>
+</div>
+
+<div class="bg-gray-800 rounded-xl p-4">
+  <div class="text-3xl mb-2">2️⃣</div>
+  <div class="font-bold text-yellow-400">Attacca</div>
+  <div class="mt-2 text-gray-300">Prova a sfruttare le vulnerabilità: modifica gli ID, chiama endpoint admin, manipola i token JWT</div>
+</div>
+
+<div class="bg-gray-800 rounded-xl p-4">
+  <div class="text-3xl mb-2">3️⃣</div>
+  <div class="font-bold text-green-400">Correggi</div>
+  <div class="mt-2 text-gray-300">Implementa la soluzione: aggiungi i controlli di autorizzazione mancanti e verifica che gli attacchi non funzionino più</div>
+</div>
+
+</div>
+
+<div class="mt-6 bg-blue-900 bg-opacity-30 rounded-lg p-4 border border-blue-600 text-sm">
+  💡 <strong>Suggerimento:</strong> Ogni scenario ha un branch <code>solution</code> con la correzione implementata. Prova prima da solo, poi confronta!
+</div>
+
+---
+layout: default
+---
+
+# Checklist di Verifica
+
+Usa questa lista per verificare che le tue fix siano complete:
+
+<div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+
+<div>
+
+### Controllo Accessi
+- [ ] Ogni endpoint verifica l'autenticazione
+- [ ] Ogni operazione su risorse verifica l'ownership
+- [ ] Gli endpoint admin verificano il ruolo `ADMIN`
+- [ ] Il deny-by-default è il comportamento predefinito
+
+</div>
+
+<div>
+
+### Token & Sessioni
+- [ ] I JWT hanno una scadenza breve (`exp`)
+- [ ] I claims JWT sono validati lato server
+- [ ] Il logout invalida effettivamente la sessione
+- [ ] Non si fidano dei dati del client senza verifica
+
+</div>
+
+<div>
+
+### Test
+- [ ] Esiste un test che verifica l'IDOR e fallisce pre-fix
+- [ ] Esiste un test per l'accesso admin non autorizzato
+- [ ] I test passano dopo le correzioni
+- [ ] I test sono integrati nella pipeline CI
+
+</div>
+
+<div>
+
+### Monitoring
+- [ ] I tentativi di accesso negato vengono loggati
+- [ ] Il log include user, risorsa e timestamp
+- [ ] Esiste un alert per accessi ripetuti negati
+
+</div>
+
+</div>
+
+---
+layout: default
+---
+
+# Riferimenti e Risorse
+
+<div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+
+<div>
+
+### OWASP
+- [OWASP Top 10:2025 — A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
+- [OWASP API Security 2023 — API1 BOLA](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
+- [OWASP Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)
+- [OWASP Proactive Controls: C1 Access Control](https://top10proactive.owasp.org/archive/2024/the-top-10/c1-accesscontrol/)
+- [OWASP ASVS V8 Authorization](https://github.com/OWASP/ASVS/blob/master/5.0/en/0x17-V8-Authorization.md)
+
+</div>
+
+<div>
+
+### Laboratorio
+- [📦 Repository principale](https://github.com/lab-sca/lab-broken-access-control)
+- [🔷 Lab Quarkus](https://github.com/lab-sca/lab-broken-access-control-quarkus)
+- [🍃 Lab Spring Boot](https://github.com/lab-sca/lab-broken-access-control-springboot)
+
+### Strumenti Utili
+- [Fugerit Venus Doc](https://venusdocs.fugerit.org/)
+- [PortSwigger Web Academy — Access Control](https://portswigger.net/web-security/access-control)
+- [OAuth 2.0 — Revoking Access](https://www.oauth.com/oauth2-servers/listing-authorizations/revoking-access/)
+
+</div>
+
+</div>
+
+---
+layout: end
+---
+
+# Buon Laboratorio! 🚀
+
+<div class="mt-4 text-gray-400">
+
+Domande? Apri una issue su GitHub o contatta il team **Secure Code Academy**
+
+</div>
+
+<div class="mt-6 flex gap-4 justify-center text-sm">
+  <a href="https://github.com/lab-sca/lab-broken-access-control" class="text-blue-400 hover:text-blue-300">
+    🔗 github.com/lab-sca/lab-broken-access-control
+  </a>
+</div>
+
+<div class="mt-8 text-xs text-gray-600">
+  Basato su OWASP Top 10:2025 · OWASP API Security Top 10:2023 · Licenza MIT
+</div>

@@ -35,14 +35,14 @@ favicon: /favicon.svg  # ← aggiunto qui
 layout: default
 ---
 
-# Agenda
+# Contenuto
 
 <div class="grid grid-cols-2 gap-6 mt-4">
 
 <div>
 
 ### Teoria
-1. 🎯 Cos'è il Broken Access Control
+1. 🎯 Broken Access Control : Cosa sono?
 2. 📊 Dati e impatto (OWASP 2025)
 3. 🔎 Tipologie di vulnerabilità
 4. 🌐 OWASP API Security: BOLA
@@ -67,7 +67,9 @@ layout: default
 layout: section
 ---
 
-# Cos'è il Broken Access Control?
+# Broken Access Control : 
+
+# Cosa Sono?
 
 ---
 layout: two-cols
@@ -267,13 +269,17 @@ layout: default
 ```mermaid
 graph LR
     subgraph TOP10["🌐 OWASP Top 10:2025"]
-        A01["A01 — Broken Access Control\n(100% applicazioni)"]
+        A01["A01 — Broken Access Control
+(100% applicazioni)"]
     end
     
     subgraph API["🔌 OWASP API Security 2023"]
-        API1["API1 — BOLA\n(Object Level)"]
-        API5["API5 — BFLA\n(Function Level)"]
-        API3["API3 — Broken Object\nProperty Level Auth"]
+        API1["API1 — BOLA
+(Object Level)"]
+        API5["API5 — BFLA
+(Function Level)"]
+        API3["API3 — Broken Object
+Property Level Auth"]
     end
     
     A01 -->|"include"| API1
@@ -287,7 +293,7 @@ graph LR
 ```
 
 <div class="mt-4 text-sm text-gray-400">
-Il Broken Access Control nell'OWASP Top 10 è una categoria "ombrello" che copre tutti i sotto-tipi di autorizzazione rotta, inclusi quelli specifici per le API.
+Broken Access Control nell'OWASP Top 10 è una categoria "ombrello" che copre tutti i sotto-tipi di autorizzazione rotta, inclusi quelli specifici per le API.
 </div>
 
 ---
@@ -409,18 +415,22 @@ layout: default
 
 # Struttura del Laboratorio
 
-<div style="transform: scale(0.7); transform-origin: top left;">
+<div style="transform: scale(0.7); transform-origin: top center;">
 ```mermaid
 graph TD
     MAIN["📦 lab-broken-access-control\n(Repository principale)"]
     Q["🔷 lab-broken-access-control-quarkus\n(Versione Quarkus)"]
     S["🍃 lab-broken-access-control-springboot\n(Versione Spring Boot)"]
     
-    MAIN -->|fork / scegli| Q
-    MAIN -->|fork / scegli| S
+    MAIN -->|scegli| Q
+    MAIN -->|scegli| S
     
-    Q --> QT["Quarkus · MicroProfile\nJAX-RS · SmallRye JWT\nPanache · Fugerit Venus Doc"]
-    S --> ST["Spring Boot · Spring MVC\nOAuth2 Resource Server\nSpring Data JPA · Fugerit Venus Doc"]
+    Q --> QT["Quarkus · MicroProfile
+(JAX-RS · SmallRye JWT
+Panache)"]
+    S --> ST["Spring Boot · Spring MVC
+(OAuth2 Resource Server
+Spring Data JPA)"]
     
     style MAIN fill:#1971c2,color:#fff
     style Q fill:#4263eb,color:#fff
@@ -443,8 +453,7 @@ layout: two-cols
 ### Quick Start
 
 ```bash
-git clone https://github.com/lab-sca/\
-  lab-broken-access-control-quarkus.git
+git clone https://github.com/lab-sca/lab-broken-access-control-quarkus.git
 cd lab-broken-access-control-quarkus
 mvn quarkus:dev
 ```
@@ -466,8 +475,7 @@ mvn quarkus:dev
 ### Quick Start
 
 ```bash
-git clone https://github.com/lab-sca/\
-  lab-broken-access-control-springboot.git
+git clone https://github.com/lab-sca/lab-broken-access-control-springboot.git
 cd lab-broken-access-control-springboot
 mvn spring-boot:run
 ```
@@ -549,7 +557,7 @@ layout: default
 </div>
 
 <div class="mt-6 bg-blue-900 bg-opacity-30 rounded-lg p-4 border border-blue-600 text-sm">
-  💡 <strong>Suggerimento:</strong> Ogni scenario ha un branch <code>solution</code> con la correzione implementata. Prova prima da solo, poi confronta!
+  💡 <strong>Suggerimento:</strong> Prova a risolvere le vulnerabilità da solo, poi confrontale con quelle sul repository.
 </div>
 
 ---
@@ -644,18 +652,24 @@ layout: end
 
 # Buon Laboratorio! 🚀
 
-<div class="mt-4 text-gray-400">
+<div class="flex gap-8 items-center justify-between mt-6">
 
-Domande? Apri una issue su GitHub o contatta il team **Secure Code Academy**
+  <!-- Colonna sinistra: testo -->
+  <div class="flex-1">
+    <div class="text-gray-400 mt-2">
+      Domande? Apri una issue su <strong>GitHub</strong>
+    </div>
+    <div class="mt-6">
+      <a href="https://github.com/lab-sca/lab-broken-access-control"
+         class="text-blue-400 hover:text-blue-300 text-sm">
+        🔗 github.com/lab-sca/lab-broken-access-control
+      </a>
+    </div>
+  </div>
 
-</div>
+  <!-- Colonna destra: QR code -->
+  <div class="flex-1 flex flex-col items-center justify-center">
+    <img src="/qrcode.svg" alt="QR Code" class="w-48 h-48"/>
+  </div>
 
-<div class="mt-6 flex gap-4 justify-center text-sm">
-  <a href="https://github.com/lab-sca/lab-broken-access-control" class="text-blue-400 hover:text-blue-300">
-    🔗 github.com/lab-sca/lab-broken-access-control
-  </a>
-</div>
-
-<div class="mt-8 text-xs text-gray-600">
-  Basato su OWASP Top 10:2025 · OWASP API Security Top 10:2023 · Licenza MIT
 </div>

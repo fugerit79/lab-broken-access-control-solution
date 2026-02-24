@@ -55,12 +55,12 @@ layout: default
 ### Pratica
 6. 🧪 Struttura del laboratorio
 7. 💻 Le 6 vulnerabilità del lab
-8. 🔴 Vuln (1) — ID Enumeration
-9. 🔴 Vuln (2) — Privilege Escalation (Data)
-10. 🔴 Vuln (3) — Privilege Escalation (Action)
-11. 🔴 Vuln (4) — Broken Object Authorization
-12. 🔴 Vuln (5) — Missing Authentication
-13. 🎁 Vuln (X) — Hidden Vulnerability
+8. 🔴/✅ Vuln (1) — ID Enumeration
+9. 🔴/✅ Vuln (2) — Privilege Escalation (Data)
+10. 🔴/✅ Vuln (3) — Privilege Escalation (Action)
+11. 🔴/✅ Vuln (4) — Broken Object Authorization
+12. 🔴/✅ Vuln (5) — Missing Authentication
+13. 🎁/✅ Vuln (X) — Hidden Vulnerability
 14. ✅ Approccio TDD & Verifica
 
 </div>
@@ -355,10 +355,17 @@ layout: default
 </div>
 
 ---
+layout: section
+---
+
+# Vuln (1) — ID Enumeration
+## IDOR · `GET /person/find/{id}`
+
+---
 layout: default
 ---
 
-# Vuln (1) — ID Enumeration <span class="text-sm font-normal text-orange-400 ml-2">IDOR · GET /person/find/{id}</span>
+# Vuln (1) — ID Enumeration <span class="text-sm font-normal text-red-400 ml-2">❌ Codice Vulnerabile</span>
 
 **Il problema:** restituendo `404` per ID inesistenti e `403` per ID esistenti ma non autorizzati, un attaccante può enumerare gli ID validi nel database.
 
@@ -367,316 +374,379 @@ GET /person/999   → 404 Not Found   ← questo ID non esiste
 GET /person/10002 → 403 Forbidden   ← questo ID esiste! 😱
 ```
 
-<div class="grid grid-cols-2 gap-3 mt-3 text-xs">
-
-<div>
-
-### ❌ Vulnerabile — `PersonResource.java`
+**File:** `PersonResource.java`
 
 ```java {5}
+@GET
+@Path("/person/find/{id}")
 @RolesAllowed({ "admin", "user" })
+@Transactional
 public Response findPerson(@PathParam("id") Long id) {
     Person person = this.personRepository.findById(id);
     if (person == null) {
-        return Response.status(NOT_FOUND).build(); // rivela l'esistenza!
+        return Response.status(Response.Status.NOT_FOUND).build(); // ← rivela l'esistenza dell'oggetto!
+    } else {
+        return Response.status(Response.Status.OK).entity(person.toDTO()).build();
     }
-    return Response.ok(person.toDTO()).build();
 }
 ```
 
-</div>
-
-<div>
-
-### ✅ Soluzione
-
-```java {5,6}
-@RolesAllowed({ "admin", "user" })
-public Response findPerson(@PathParam("id") Long id) {
-    Person person = this.personRepository.findById(id);
-    if (person == null) {
-        // SOLUTION (1): sempre FORBIDDEN, mai NOT_FOUND
-        return Response.status(FORBIDDEN).build();
-    }
-    return Response.ok(person.toDTO()).build();
-}
-```
-
-</div>
-
-</div>
-
-<div class="mt-3 bg-red-900 bg-opacity-20 rounded p-2 text-xs border border-red-800">
-  🎯 <strong>Tecnica di attacco:</strong> iterare sugli ID e distinguere 404 da 403 per costruire una mappa degli oggetti esistenti nel database.
+<div class="mt-4 bg-red-900 bg-opacity-20 rounded p-3 text-xs border border-red-800">
+  🎯 <strong>Tecnica di attacco:</strong> iterare sugli ID e distinguere <code>404</code> da <code>403</code> per costruire una mappa completa degli oggetti esistenti nel database.
 </div>
 
 ---
 layout: default
 ---
 
-# Vuln (2) — Privilege Escalation (Data) <span class="text-sm font-normal text-orange-400 ml-2">BOLA</span>
+# Vuln (1) — ID Enumeration <span class="text-sm font-normal text-green-400 ml-2">✅ Soluzione</span>
 
-**Il problema:** `findByRolesOrderedByName()` riceve i ruoli dell'utente come parametro ma **li ignora nella query**, restituendo tutte le persone senza filtro.
+**La fix:** restituire sempre `403 FORBIDDEN` indipendentemente dal fatto che l'oggetto esista o meno, rendendo impossibile l'enumerazione.
 
-**Endpoint interessati:** `GET /doc/example.md` · `GET /doc/example.html` · `GET /doc/person/list`
+**File:** `PersonResource.java`
 
-<div class="grid grid-cols-2 gap-3 mt-3 text-xs">
-
-<div>
-
-### ❌ Vulnerabile — `PersonRepository.java`
-
-```java {4,5}
-public List<Person> findByRolesOrderedByName(
-        Collection<String> roles) {
-    // Il parametro 'roles' è ricevuto ma ignorato!
-    return find("order by lastName, firstName")
-               .list();
+```java {7,8}
+@GET
+@Path("/person/find/{id}")
+@RolesAllowed({ "admin", "user" })
+@Transactional
+public Response findPerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        // SOLUTION (1): restituiamo FORBIDDEN invece di NOT_FOUND
+        // per non rendere gli oggetti enumerabili
+        return Response.status(Response.Status.FORBIDDEN).build();
+    } else {
+        return Response.status(Response.Status.OK).entity(person.toDTO()).build();
+    }
 }
 ```
 
+<div class="mt-4 bg-green-900 bg-opacity-20 rounded p-3 text-xs border border-green-800">
+  ✅ <strong>Principio applicato:</strong> un utente non autorizzato non deve sapere se una risorsa esiste o meno — la risposta deve essere identica in entrambi i casi.
 </div>
 
-<div>
+---
+layout: section
+---
 
-### ✅ Soluzione
+# Vuln (2) — Privilege Escalation (Data)
+## BOLA · `GET /doc/person/list`
 
-```java {4,5,6}
-public List<Person> findByRolesOrderedByName(
-        Collection<String> roles) {
-    // SOLUTION (2): usiamo 'roles' come filtro nella query
-    return find("minRole is null or minRole in ?1 " +
-                "order by lastName, firstName", roles)
-               .list();
+---
+layout: default
+---
+
+# Vuln (2) — Privilege Escalation (Data) <span class="text-sm font-normal text-red-400 ml-2">❌ Codice Vulnerabile</span>
+
+**Il problema:** `findByRolesOrderedByName()` riceve i ruoli dell'utente come parametro ma **li ignora completamente nella query**, restituendo tutti i record senza filtro.
+
+**File:** `PersonRepository.java`
+
+```java {5,6,7}
+/**
+ * Restituisce l'elenco delle persone ordinate per cognome e nome,
+ * filtrate per MIN_ROLE (NULL oppure presente nella collection di ruoli fornita)
+ */
+public List<Person> findByRolesOrderedByName(Collection<String> roles) {
+    // Il parametro 'roles' è ricevuto ma completamente ignorato!
+    return find("order by lastName, firstName").list();
 }
 ```
 
-</div>
-
-</div>
-
-<div class="mt-3 bg-yellow-900 bg-opacity-20 rounded p-2 text-xs border border-yellow-800">
-  ⚠️ Fa fallire <strong>2 casi di test</strong> (MD e HTML). Un utente <code>user</code> vede persone con <code>minRole=admin</code> come Richard Feynman.
+<div class="mt-4 bg-red-900 bg-opacity-20 rounded p-3 text-xs border border-red-800">
+  🎯 <strong>Effetto:</strong> un utente con ruolo <code>user</code> vede anche le persone con <code>minRole=admin</code> (es. Richard Feynman).<br/>
+  ⚠️ Questa vulnerabilità fa fallire <strong>2 casi di test</strong>: uno per il formato MD e uno per HTML.
 </div>
 
 ---
 layout: default
 ---
 
-# Vuln (3) — Privilege Escalation (Action) <span class="text-sm font-normal text-orange-400 ml-2">BOLA · DELETE /doc/person/delete/{id}</span>
+# Vuln (2) — Privilege Escalation (Data) <span class="text-sm font-normal text-green-400 ml-2">✅ Soluzione</span>
 
-**Il problema:** `@RolesAllowed` include erroneamente il ruolo `user`, permettendo a qualsiasi utente autenticato di **cancellare** persone — operazione riservata solo agli `admin`.
+**La fix:** usare il parametro `roles` come filtro nella query Panache, includendo solo le persone con `minRole` nullo (visibili a tutti) o corrispondente ai ruoli dell'utente.
 
-<div class="grid grid-cols-2 gap-3 mt-4 text-xs">
+**File:** `PersonRepository.java`
 
-<div>
+```java {5,6,7,8}
+/**
+ * Restituisce l'elenco delle persone ordinate per cognome e nome,
+ * filtrate per MIN_ROLE (NULL oppure presente nella collection di ruoli fornita)
+ */
+public List<Person> findByRolesOrderedByName(Collection<String> roles) {
+    // SOLUTION (2): usiamo 'roles' come filtro nella query.
+    // minRole null = visibile a tutti i ruoli autenticati
+    return find("minRole is null or minRole in ?1 order by lastName, firstName", roles).list();
+}
+```
 
-### ❌ Vulnerabile — `DocResource.java`
+<div class="mt-4 bg-green-900 bg-opacity-20 rounded p-3 text-xs border border-green-800">
+  ✅ <strong>Principio applicato:</strong> il filtraggio dei dati in base ai ruoli deve avvenire <strong>lato server nella query</strong>, non affidarsi al client o a logica applicativa successiva.
+</div>
 
-```java {3}
+---
+layout: section
+---
+
+# Vuln (3) — Privilege Escalation (Action)
+## BOLA · `DELETE /doc/person/delete/{id}`
+
+---
+layout: default
+---
+
+# Vuln (3) — Privilege Escalation (Action) <span class="text-sm font-normal text-red-400 ml-2">❌ Codice Vulnerabile</span>
+
+**Il problema:** `@RolesAllowed` include erroneamente il ruolo `user`, permettendo a qualsiasi utente autenticato di **cancellare** persone — operazione che dovrebbe essere riservata solo agli `admin`.
+
+**File:** `DocResource.java`
+
+```java {4}
 @DELETE
 @Path("/person/delete/{id}")
-@RolesAllowed({ "admin", "user" }) // ← user non dovrebbe cancellare!
+@RolesAllowed({ "admin", "user" }) // ← 'user' non dovrebbe poter cancellare!
 @Transactional
 public Response deletePerson(@PathParam("id") Long id) {
     Person person = this.personRepository.findById(id);
     if (person == null) {
-        return Response.status(FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
     person.delete();
-    return Response.ok().build();
+    return Response.status(Response.Status.OK).build();
 }
 ```
 
+<div class="mt-4 bg-red-900 bg-opacity-20 rounded p-3 text-xs border border-red-800">
+  🎯 <strong>Principio violato:</strong> Least Privilege — un utente ha ottenuto più permessi di quelli necessari al suo ruolo, probabilmente per un errore di copia-incolla dell'annotazione.
 </div>
 
-<div>
+---
+layout: default
+---
 
-### ✅ Soluzione
+# Vuln (3) — Privilege Escalation (Action) <span class="text-sm font-normal text-green-400 ml-2">✅ Soluzione</span>
 
-```java {3,4}
+**La fix:** rimuovere `"user"` da `@RolesAllowed`, lasciando solo `"admin"` come da specifiche.
+
+**File:** `DocResource.java`
+
+```java {4,5}
 @DELETE
 @Path("/person/delete/{id}")
-// SOLUTION (3): solo 'admin' può cancellare
+// SOLUTION (3): rimuoviamo il ruolo 'user'.
+// Secondo le specifiche, la cancellazione è consentita solo ad 'admin'
 @RolesAllowed({ "admin" })
 @Transactional
 public Response deletePerson(@PathParam("id") Long id) {
     Person person = this.personRepository.findById(id);
     if (person == null) {
-        return Response.status(FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
     person.delete();
-    return Response.ok().build();
+    return Response.status(Response.Status.OK).build();
 }
 ```
 
+<div class="mt-4 bg-green-900 bg-opacity-20 rounded p-3 text-xs border border-green-800">
+  ✅ <strong>Buona pratica:</strong> ogni operazione distruttiva (DELETE, modifica dati critici) dovrebbe richiedere una revisione esplicita dei ruoli autorizzati, separata dalla logica di lettura.
 </div>
 
-</div>
+---
+layout: section
+---
 
-<div class="mt-3 bg-red-900 bg-opacity-20 rounded p-2 text-xs border border-red-800">
-  🎯 <strong>Principio violato:</strong> Least Privilege — un utente ottiene più permessi di quelli necessari al suo ruolo.
+# Vuln (4) — Broken Object Authorization
+## BOLA · `GET /doc/person/find/{id}`
+
+---
+layout: default
+---
+
+# Vuln (4) — Broken Object Authorization <span class="text-sm font-normal text-red-400 ml-2">❌ Codice Vulnerabile</span>
+
+**Il problema:** anche se l'utente è autenticato e autorizzato all'endpoint, non viene verificato se possiede il ruolo minimo richiesto **dalla singola risorsa** (`person.getMinRole()`). Contiene anche la vuln (1).
+
+**File:** `DocResource.java`
+
+```java {7,9,10}
+@GET
+@Path("/person/find/{id}")
+@RolesAllowed({ "admin", "user" })
+@Transactional
+public Response findPerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        return Response.status(Response.Status.NOT_FOUND).build(); // ← vuln (1): enumerable!
+    } else {
+        // Nessun controllo su person.getMinRole() vs ruoli dell'utente!
+        return Response.status(Response.Status.OK).entity(person.toDTO()).build();
+    }
+}
+```
+
+<div class="mt-4 bg-red-900 bg-opacity-20 rounded p-3 text-xs border border-red-800">
+  🎯 <strong>Effetto:</strong> un utente <code>user</code> può leggere dati di persone con <code>minRole=admin</code> conoscendone l'ID diretto, anche se la lista è filtrata correttamente (vuln 2).
 </div>
 
 ---
 layout: default
 ---
 
-# Vuln (4) — Broken Object Authorization <span class="text-sm font-normal text-orange-400 ml-2">BOLA · GET /doc/person/find/{id}</span>
+# Vuln (4) — Broken Object Authorization <span class="text-sm font-normal text-green-400 ml-2">✅ Soluzione</span>
 
-**Il problema:** anche se l'utente è autenticato, non viene verificato se ha il ruolo minimo richiesto **dalla singola risorsa** (`person.getMinRole()`). La fix incorpora anche la (1).
+**La fix:** verificare che i ruoli dell'utente autenticato contengano il `minRole` richiesto dalla risorsa. Questa soluzione ingloba anche la fix della vuln (1).
 
-<div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+**File:** `DocResource.java`
 
-<div>
-
-### ❌ Vulnerabile — `DocResource.java`
-
-```java
+```java {8,10,11,12,13,14,15}
+@GET
+@Path("/person/find/{id}")
 @RolesAllowed({ "admin", "user" })
+@Transactional
 public Response findPerson(@PathParam("id") Long id) {
     Person person = this.personRepository.findById(id);
     if (person == null) {
-        return Response.status(NOT_FOUND).build(); // vuln (1)
+        // SOLUTION (1): FORBIDDEN invece di NOT_FOUND — oggetti non enumerabili
+        return Response.status(Response.Status.FORBIDDEN).build();
+    } else {
+        // SOLUTION (4): verifica se l'utente ha il ruolo minimo richiesto dalla risorsa
+        if (person.getMinRole() == null || this.securityIdentity.getRoles().contains(person.getMinRole())) {
+            return Response.status(Response.Status.OK).entity(person.toDTO()).build();
+        } else {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
     }
-    // Nessun controllo su person.getMinRole()!
-    return Response.ok(person.toDTO()).build();
 }
 ```
 
+<div class="mt-4 bg-blue-900 bg-opacity-20 rounded p-3 text-xs border border-blue-800">
+  💡 La soluzione della (4) incorpora anche la fix della (1) — i due problemi vivono nello stesso metodo.
 </div>
 
-<div>
+---
+layout: section
+---
 
-### ✅ Soluzione (fix 1 + 4)
-
-```java
-@RolesAllowed({ "admin", "user" })
-public Response findPerson(@PathParam("id") Long id) {
-    Person person = this.personRepository.findById(id);
-    if (person == null) {
-        return Response.status(FORBIDDEN).build(); // fix (1)
-    }
-    // SOLUTION (4): verifica il minRole della risorsa
-    if (person.getMinRole() == null || securityIdentity
-            .getRoles().contains(person.getMinRole())) {
-        return Response.ok(person.toDTO()).build();
-    }
-    return Response.status(FORBIDDEN).build();
-}
-```
-
-</div>
-
-</div>
-
-<div class="mt-3 bg-blue-900 bg-opacity-20 rounded p-2 text-xs border border-blue-800">
-  💡 La soluzione della (4) ingloba anche la fix della (1) — i due problemi vivono nello stesso metodo.
-</div>
+# Vuln (5) — Missing Authentication
+## Access Control · `GET /doc/example.md`
 
 ---
 layout: default
 ---
 
-# Vuln (5) — Missing Authentication <span class="text-sm font-normal text-orange-400 ml-2">Access Control · GET /doc/example.md</span>
+# Vuln (5) — Missing Authentication <span class="text-sm font-normal text-red-400 ml-2">❌ Codice Vulnerabile</span>
 
-**Il problema:** il metodo ha `@SecurityRequirement` (solo documentazione Swagger) ma **manca di `@RolesAllowed`**, rendendolo accessibile senza alcuna autenticazione.
+**Il problema:** il metodo ha `@SecurityRequirement` (visibilità Swagger) ma **manca completamente di `@RolesAllowed`**, rendendolo accessibile senza alcuna autenticazione.
 
-<div class="grid grid-cols-2 gap-3 mt-4 text-xs">
+**File:** `DocResource.java`
 
-<div>
-
-### ❌ Vulnerabile — `DocResource.java`
-
-```java
+```java {4,5,6}
 @GET
 @Path("/example.md")
 @SecurityRequirement(name = "SecurityScheme")
 // @RolesAllowed mancante!
-// Chiunque, anche non autenticato, può chiamarlo
+// @SecurityRequirement documenta solo l'endpoint in Swagger
+// ma NON applica alcun controllo di sicurezza reale
 public Response markdownExample() throws IOException {
-    return Response.ok(
-        processDocument(DocConfig.TYPE_MD)
-    ).build();
+    return Response.status(Response.Status.OK)
+                   .entity(processDocument(DocConfig.TYPE_MD))
+                   .build();
 }
 ```
 
-</div>
-
-<div>
-
-### ✅ Soluzione
-
-```java
-@GET
-@Path("/example.md")
-@SecurityRequirement(name = "SecurityScheme")
-// SOLUTION (5): aggiungiamo i ruoli autorizzati.
-// 'guest' è il ruolo minimo previsto dalle specifiche
-@RolesAllowed({ "admin", "user", "guest" })
-public Response markdownExample() throws IOException {
-    return Response.ok(
-        processDocument(DocConfig.TYPE_MD)
-    ).build();
-}
-```
-
-</div>
-
-</div>
-
-<div class="mt-3 bg-yellow-900 bg-opacity-20 rounded p-2 text-xs border border-yellow-800">
-  ⚠️ <strong>Attenzione:</strong> <code>@SecurityRequirement</code> serve solo per la documentazione OpenAPI — <strong>non applica alcun controllo di sicurezza reale</strong>. Serve sempre <code>@RolesAllowed</code>.
+<div class="mt-4 bg-red-900 bg-opacity-20 rounded p-3 text-xs border border-red-800">
+  ⚠️ <strong>Errore comune:</strong> confondere <code>@SecurityRequirement</code> (documentazione OpenAPI) con <code>@RolesAllowed</code> (controllo di sicurezza reale). Il primo non protegge nulla.
 </div>
 
 ---
 layout: default
 ---
 
-# Vuln (X) — Hidden Vulnerability 🎁 <span class="text-sm font-normal text-purple-400 ml-2">BONUS · PUT /person/add</span>
+# Vuln (5) — Missing Authentication <span class="text-sm font-normal text-green-400 ml-2">✅ Soluzione</span>
 
-**Il problema:** un metodo `PUT` alternativo per aggiungere persone è rimasto attivo **senza alcun controllo di autenticazione**. Non è coperto dai test — va trovato analizzando il codice.
+**La fix:** aggiungere `@RolesAllowed` con i ruoli previsti dalle specifiche. Il ruolo `guest` è il minimo richiesto per accedere al documento.
 
-<div class="grid grid-cols-2 gap-3 mt-4 text-xs">
+**File:** `DocResource.java`
 
-<div>
+```java {4,5,6}
+@GET
+@Path("/example.md")
+@SecurityRequirement(name = "SecurityScheme")
+// SOLUTION (5): aggiungiamo i ruoli autorizzati previsti dalle specifiche.
+// 'guest' è il ruolo minimo — il path non è ad accesso pubblico
+@RolesAllowed({ "admin", "user", "guest" })
+public Response markdownExample() throws IOException {
+    return Response.status(Response.Status.OK)
+                   .entity(processDocument(DocConfig.TYPE_MD))
+                   .build();
+}
+```
 
-### ❌ Vulnerabile — `PersonResource.java`
+<div class="mt-4 bg-green-900 bg-opacity-20 rounded p-3 text-xs border border-green-800">
+  ✅ <strong>Regola generale:</strong> ogni endpoint deve avere esplicitamente <code>@RolesAllowed</code>. Se un endpoint deve essere pubblico, va dichiarato esplicitamente con <code>@PermitAll</code>, non semplicemente omettendo l'annotazione.
+</div>
+
+---
+layout: section
+---
+
+# Vuln (X) — Hidden Vulnerability 🎁
+## BONUS · `PUT /person/add`
+
+---
+layout: default
+---
+
+# Vuln (X) — Hidden Vulnerability 🎁 <span class="text-sm font-normal text-red-400 ml-2">❌ Codice Vulnerabile</span>
+
+**Il problema:** un metodo `PUT` alternativo per aggiungere persone è rimasto attivo **senza alcun controllo di autenticazione o autorizzazione**. Non è censito nei test — va trovato analizzando il codice.
+
+**File:** `PersonResource.java`
 
 ```java
+@APIResponse(responseCode = "201", description = "La persona è stata creata")
+@APIResponse(responseCode = "401", description = "Se l'autenticazione non è presente")
+@APIResponse(responseCode = "403", description = "Se l'utente non è autorizzato per la risorsa")
+@Tag(name = "person")
+@Operation(operationId = "addPersonPut", summary = "Aggiunge una persona al database (ruoli: admin)")
 @PUT
 @Path("/person/add")
 @Transactional
 // Nessun @RolesAllowed — nessun @SecurityRequirement
-// Chiunque può aggiungere persone al database!
-public Response addPersonPut(
-        AddPersonRequestDTO request) {
+// Chiunque, anche non autenticato, può aggiungere persone!
+public Response addPersonPut(AddPersonRequestDTO request) {
     return this.addPerson(request);
 }
 ```
 
+<div class="mt-3 bg-red-900 bg-opacity-20 rounded p-2 text-xs border border-red-800">
+  🎁 <strong>Nota:</strong> persino la documentazione OpenAPI dichiara <code>401</code> e <code>403</code> come risposte possibili... ma senza <code>@RolesAllowed</code> non verranno mai restituite!
 </div>
 
-<div>
+---
+layout: default
+---
 
-### ✅ Soluzione: rimozione completa
+# Vuln (X) — Hidden Vulnerability 🎁 <span class="text-sm font-normal text-green-400 ml-2">✅ Soluzione</span>
+
+**La fix:** rimuovere completamente il metodo. Esiste già `addPersonPost()` con i controlli di sicurezza appropriati — `addPersonPut()` è un duplicato dimenticato.
+
+**File:** `PersonResource.java`
 
 ```java
-// SOLUTION (X): il metodo addPersonPut() è rimasto
-// abilitato per errore senza controllo di autorizzazione.
+// SOLUTION (X): una PUT senza controllo di autorizzazione
+// è rimasta abilitata per errore.
 //
-// La soluzione corretta è rimuoverlo completamente:
-// esiste già addPersonPost() con i controlli appropriati.
+// La soluzione corretta è rimuovere totalmente il metodo addPersonPut().
+// Esiste già addPersonPost() con @RolesAllowed({ "admin" }) che svolge
+// la stessa funzione in modo sicuro.
 //
-// ← metodo eliminato
+// ← metodo rimosso
 ```
 
-</div>
-
-</div>
-
-<div class="mt-3 bg-purple-900 bg-opacity-20 rounded p-2 text-xs border border-purple-800">
-  🎁 <strong>Lezione:</strong> API dimenticate o duplicate sono una fonte comune di vulnerabilità. Revisioni regolari del codice e inventario degli endpoint aiutano a individuarle.
+<div class="mt-6 bg-purple-900 bg-opacity-20 rounded p-3 text-sm border border-purple-800">
+  🎁 <strong>Lezione:</strong> le API dimenticate o duplicate sono tra le vulnerabilità più insidiose — difficili da trovare senza una revisione sistematica del codice o un inventario degli endpoint. Strumenti come Swagger UI o test di superficie API aiutano a scoprirle.
 </div>
 
 ---
@@ -851,4 +921,3 @@ layout: end
   </div>
 
 </div>
-

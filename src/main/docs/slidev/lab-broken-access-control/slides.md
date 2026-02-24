@@ -13,7 +13,7 @@ transition: slide-left
 mdc: true
 layout: cover
 background: https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1920&q=80
-favicon: /favicon.svg  # ← aggiunto qui
+favicon: /favicon.svg
 ---
 
 # 🔐 Broken Access Control
@@ -42,7 +42,7 @@ layout: default
 <div>
 
 ### Teoria
-1. 🎯 Broken Access Control : Cosa sono?
+1. 🎯 Broken Access Control: Cosa sono?
 2. 📊 Dati e impatto (OWASP 2025)
 3. 🔎 Tipologie di vulnerabilità
 4. 🌐 OWASP API Security: BOLA
@@ -54,10 +54,14 @@ layout: default
 
 ### Pratica
 6. 🧪 Struttura del laboratorio
-7. 🔷 Versione Quarkus
-8. 🍃 Versione Spring Boot
-9. 💻 Scenari di attacco
-10. ✅ Verifica e soluzione
+7. 💻 Le 6 vulnerabilità del lab
+8. 🔴 Vuln (1) — ID Enumeration
+9. 🔴 Vuln (2) — Privilege Escalation (Data)
+10. 🔴 Vuln (3) — Privilege Escalation (Action)
+11. 🔴 Vuln (4) — Broken Object Authorization
+12. 🔴 Vuln (5) — Missing Authentication
+13. 🎁 Vuln (X) — Hidden Vulnerability
+14. ✅ Approccio TDD & Verifica
 
 </div>
 
@@ -67,7 +71,7 @@ layout: default
 layout: section
 ---
 
-# Broken Access Control : 
+# Broken Access Control:
 
 # Cosa Sono?
 
@@ -87,7 +91,9 @@ Un fallimento di questo meccanismo porta tipicamente a:
 
 ::right::
 
-<div style="transform: scale(0.7); transform-origin: top left;">
+<div style="display: flex; justify-content: center;">
+<div style="transform: scale(0.7); transform-origin: top center;">
+
 ```mermaid
 flowchart TD
     U([👤 Utente]) --> R{Richiesta API}
@@ -101,6 +107,8 @@ flowchart TD
     style E fill:#51cf66,color:#fff
     style D fill:#339af0,color:#fff
 ```
+
+</div>
 </div>
 
 ---
@@ -184,43 +192,6 @@ layout: default
 </div>
 
 ---
-layout: default
----
-
-# Come Funziona un Attacco IDOR
-
-<div style="transform: scale(0.7); transform-origin: top left;">
-```mermaid
-sequenceDiagram
-    actor Attacker as 👿 Attaccante
-    participant API as 🖥️ API Server
-    participant DB as 🗄️ Database
-
-    Note over Attacker: L'attaccante è autenticato come user_id=42
-    
-    Attacker->>API: GET /api/documents/100 (proprio documento)
-    API->>DB: SELECT * FROM docs WHERE id=100
-    DB-->>API: { id:100, owner:42, content:"..." }
-    API-->>Attacker: ✅ 200 OK — documento ricevuto
-
-    Note over Attacker: Modifica l'ID nella richiesta...
-    
-    Attacker->>API: GET /api/documents/101 (documento altrui!)
-    API->>DB: SELECT * FROM docs WHERE id=101
-    Note over API: ⚠️ Nessun controllo owner == current_user!
-    DB-->>API: { id:101, owner:99, content:"SEGRETO" }
-    API-->>Attacker: ✅ 200 OK — dati rubati! 😱
-```
-</div>
-
----
-layout: section
----
-
-# OWASP API Security Top 10
-## API1:2023 — Broken Object Level Authorization (BOLA)
-
----
 layout: two-cols
 ---
 
@@ -259,48 +230,6 @@ Authorization: Bearer eyJ...    ← Stesso token!
 - Data breach
 - Manipolazione dati altrui
 - Account takeover completo
-
----
-layout: default
----
-
-# Confronto: OWASP Top 10 vs API Security
-
-```mermaid
-graph LR
-    subgraph TOP10["🌐 OWASP Top 10:2025"]
-        A01["A01 — Broken Access Control
-(100% applicazioni)"]
-    end
-    
-    subgraph API["🔌 OWASP API Security 2023"]
-        API1["API1 — BOLA
-(Object Level)"]
-        API5["API5 — BFLA
-(Function Level)"]
-        API3["API3 — Broken Object
-Property Level Auth"]
-    end
-    
-    A01 -->|"include"| API1
-    A01 -->|"include"| API5
-    A01 -->|"include"| API3
-    
-    style A01 fill:#e03131,color:#fff
-    style API1 fill:#c2255c,color:#fff
-    style API5 fill:#862e9c,color:#fff
-    style API3 fill:#5c7cfa,color:#fff
-```
-
-<div class="mt-4 text-sm text-gray-400">
-Broken Access Control nell'OWASP Top 10 è una categoria "ombrello" che copre tutti i sotto-tipi di autorizzazione rotta, inclusi quelli specifici per le API.
-</div>
-
----
-layout: section
----
-
-# Remediation & Best Practice
 
 ---
 layout: default
@@ -353,61 +282,10 @@ layout: default
 </div>
 
 ---
-layout: default
----
-
-# Pattern di Autorizzazione: Esempio Java
-
-<div class="grid grid-cols-2 gap-4">
-
-<div>
-
-### ❌ Vulnerabile
-
-```java
-// IDOR: nessun controllo ownership
-@GET
-@Path("/documents/{id}")
-public Document getDocument(@PathParam("id") Long id) {
-    // Chiunque può leggere qualsiasi documento!
-    return documentRepository.findById(id);
-}
-```
-
-</div>
-
-<div>
-
-### ✅ Sicuro
-
-```java
-@GET
-@Path("/documents/{id}")
-@RolesAllowed("user")
-public Document getDocument(
-    @PathParam("id") Long id,
-    @Context SecurityContext ctx) {
-    
-    Document doc = documentRepository.findById(id);
-    
-    // Verifica che l'utente sia il proprietario
-    String currentUser = ctx.getUserPrincipal().getName();
-    if (!doc.getOwner().equals(currentUser)) {
-        throw new ForbiddenException("Accesso negato");
-    }
-    return doc;
-}
-```
-
-</div>
-
-</div>
-
----
 layout: section
 ---
 
-# Il Laboratorio
+# Il Laboratorio Pratico
 
 ---
 layout: default
@@ -415,7 +293,9 @@ layout: default
 
 # Struttura del Laboratorio
 
-<div style="transform: scale(0.7); transform-origin: top center;">
+<div style="display: flex; justify-content: center;">
+<div style="transform: scale(0.75); transform-origin: top center;">
+
 ```mermaid
 graph TD
     MAIN["📦 lab-broken-access-control\n(Repository principale)"]
@@ -425,105 +305,430 @@ graph TD
     MAIN -->|scegli| Q
     MAIN -->|scegli| S
     
-    Q --> QT["Quarkus · MicroProfile
-(JAX-RS · SmallRye JWT
-Panache)"]
-    S --> ST["Spring Boot · Spring MVC
-(OAuth2 Resource Server
-Spring Data JPA)"]
+    Q --> QT["Quarkus · MicroProfile\nJAX-RS · SmallRye JWT · Panache"]
+    S --> ST["Spring Boot · Spring MVC\nOAuth2 Resource Server · Spring Data JPA"]
     
     style MAIN fill:#1971c2,color:#fff
     style Q fill:#4263eb,color:#fff
     style S fill:#2f9e44,color:#fff
 ```
+
+</div>
 </div>
 
-<div class="mt-4 text-sm text-gray-400">
+<div class="mt-2 text-sm text-gray-400 text-center">
   Repository principale: <a href="https://github.com/lab-sca/lab-broken-access-control" class="text-blue-400">github.com/lab-sca/lab-broken-access-control</a>
 </div>
-
----
-layout: two-cols
----
-
-# 🔷 Versione Quarkus
-
-**Cloud-native, supersonic, subatomic Java**
-
-### Quick Start
-
-```bash
-git clone https://github.com/lab-sca/lab-broken-access-control-quarkus.git
-cd lab-broken-access-control-quarkus
-mvn quarkus:dev
-```
-
-### Tecnologie
-
-- **Quarkus** + MicroProfile
-- **JAX-RS** per le REST API
-- **SmallRye JWT** per l'autenticazione
-- **Panache** per la persistenza
-- **Fugerit Venus Doc** per i report
-
-::right::
-
-# 🍃 Versione Spring Boot
-
-**Il framework Java più diffuso per microservizi**
-
-### Quick Start
-
-```bash
-git clone https://github.com/lab-sca/lab-broken-access-control-springboot.git
-cd lab-broken-access-control-springboot
-mvn spring-boot:run
-```
-
-### Tecnologie
-
-- **Spring Boot** standalone
-- **Spring MVC** per le REST API
-- **OAuth2 Resource Server** per JWT
-- **Spring Data JPA** per la persistenza
-- **Fugerit Venus Doc** per i report
 
 ---
 layout: default
 ---
 
-# Scenari di Attacco del Lab
+# Le 6 Vulnerabilità del Laboratorio
 
-<div class="mt-4 space-y-3">
+<div class="mt-4 text-sm">
 
-<div class="bg-gray-800 rounded-lg p-4 border-l-4 border-red-500">
-  <div class="flex items-center gap-2">
-    <span class="text-red-400 font-bold">Scenario 1 — IDOR su Risorsa Personale</span>
-    <span class="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded">OWASP API1</span>
-  </div>
-  <div class="mt-1 text-sm text-gray-300">
-    L'utente autenticato può accedere a documenti/risorse di altri utenti semplicemente modificando l'ID nel path della richiesta.
-  </div>
+| # | Tipo | Classificazione | Endpoint |
+|---|------|-----------------|----------|
+| **(1)** | ID Enumeration | IDOR | `GET /person/find/{id}` |
+| **(2)** | Privilege Escalation — Dati | BOLA | `GET /doc/example.md` · `/doc/person/list` |
+| **(3)** | Privilege Escalation — Azione | BOLA | `DELETE /doc/person/delete/{id}` |
+| **(4)** | Broken Object Authorization | BOLA | `GET /doc/person/find/{id}` |
+| **(5)** | Missing Authentication | Access Control | `GET /doc/example.md` |
+| **(X)** | 🎁 Hidden Vulnerability (BONUS) | Access Control | `PUT /person/add` |
+
 </div>
 
-<div class="bg-gray-800 rounded-lg p-4 border-l-4 border-orange-500">
-  <div class="flex items-center gap-2">
-    <span class="text-orange-400 font-bold">Scenario 2 — Missing Authorization su Endpoint Admin</span>
-    <span class="text-xs bg-orange-900 text-orange-300 px-2 py-0.5 rounded">OWASP A01</span>
-  </div>
-  <div class="mt-1 text-sm text-gray-300">
-    Endpoint amministrativi accessibili senza la verifica del ruolo admin — un utente normale ottiene accesso privilegiato.
-  </div>
+<div class="mt-5 grid grid-cols-2 gap-3 text-xs">
+<div class="bg-gray-800 rounded p-3 border border-gray-600">
+  📄 <strong>File da modificare:</strong><br/>
+  <code>DocResource.java</code> · <code>PersonResource.java</code> · <code>PersonRepository.java</code>
+</div>
+<div class="bg-gray-800 rounded p-3 border border-gray-600">
+  🧪 <strong>Test di riferimento:</strong><br/>
+  <code>DocResourceSicurezzaTest.java</code>
+</div>
 </div>
 
-<div class="bg-gray-800 rounded-lg p-4 border-l-4 border-yellow-500">
-  <div class="flex items-center gap-2">
-    <span class="text-yellow-400 font-bold">Scenario 3 — JWT Claims Manipulation</span>
-    <span class="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded">OWASP A01</span>
-  </div>
-  <div class="mt-1 text-sm text-gray-300">
-    Manipolazione dei claims JWT per falsificare il ruolo utente o l'identità, sfruttando una validazione insufficiente lato server.
-  </div>
+<div class="mt-3 bg-blue-900 bg-opacity-30 rounded-lg p-3 border border-blue-600 text-xs">
+  💡 Ogni vulnerabilità fa fallire almeno un test. La <strong>(2)</strong> ne fa fallire 2. La <strong>(X)</strong> non è coperta dai test — trovala tu!
+</div>
+
+---
+layout: default
+---
+
+# Vuln (1) — ID Enumeration <span class="text-sm font-normal text-orange-400 ml-2">IDOR · GET /person/find/{id}</span>
+
+**Il problema:** restituendo `404` per ID inesistenti e `403` per ID esistenti ma non autorizzati, un attaccante può enumerare gli ID validi nel database.
+
+```http
+GET /person/999   → 404 Not Found   ← questo ID non esiste
+GET /person/10002 → 403 Forbidden   ← questo ID esiste! 😱
+```
+
+<div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+
+<div>
+
+### ❌ Vulnerabile — `PersonResource.java`
+
+```java {5}
+@RolesAllowed({ "admin", "user" })
+public Response findPerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        return Response.status(NOT_FOUND).build(); // rivela l'esistenza!
+    }
+    return Response.ok(person.toDTO()).build();
+}
+```
+
+</div>
+
+<div>
+
+### ✅ Soluzione
+
+```java {5,6}
+@RolesAllowed({ "admin", "user" })
+public Response findPerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        // SOLUTION (1): sempre FORBIDDEN, mai NOT_FOUND
+        return Response.status(FORBIDDEN).build();
+    }
+    return Response.ok(person.toDTO()).build();
+}
+```
+
+</div>
+
+</div>
+
+<div class="mt-3 bg-red-900 bg-opacity-20 rounded p-2 text-xs border border-red-800">
+  🎯 <strong>Tecnica di attacco:</strong> iterare sugli ID e distinguere 404 da 403 per costruire una mappa degli oggetti esistenti nel database.
+</div>
+
+---
+layout: default
+---
+
+# Vuln (2) — Privilege Escalation (Data) <span class="text-sm font-normal text-orange-400 ml-2">BOLA</span>
+
+**Il problema:** `findByRolesOrderedByName()` riceve i ruoli dell'utente come parametro ma **li ignora nella query**, restituendo tutte le persone senza filtro.
+
+**Endpoint interessati:** `GET /doc/example.md` · `GET /doc/example.html` · `GET /doc/person/list`
+
+<div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+
+<div>
+
+### ❌ Vulnerabile — `PersonRepository.java`
+
+```java {4,5}
+public List<Person> findByRolesOrderedByName(
+        Collection<String> roles) {
+    // Il parametro 'roles' è ricevuto ma ignorato!
+    return find("order by lastName, firstName")
+               .list();
+}
+```
+
+</div>
+
+<div>
+
+### ✅ Soluzione
+
+```java {4,5,6}
+public List<Person> findByRolesOrderedByName(
+        Collection<String> roles) {
+    // SOLUTION (2): usiamo 'roles' come filtro nella query
+    return find("minRole is null or minRole in ?1 " +
+                "order by lastName, firstName", roles)
+               .list();
+}
+```
+
+</div>
+
+</div>
+
+<div class="mt-3 bg-yellow-900 bg-opacity-20 rounded p-2 text-xs border border-yellow-800">
+  ⚠️ Fa fallire <strong>2 casi di test</strong> (MD e HTML). Un utente <code>user</code> vede persone con <code>minRole=admin</code> come Richard Feynman.
+</div>
+
+---
+layout: default
+---
+
+# Vuln (3) — Privilege Escalation (Action) <span class="text-sm font-normal text-orange-400 ml-2">BOLA · DELETE /doc/person/delete/{id}</span>
+
+**Il problema:** `@RolesAllowed` include erroneamente il ruolo `user`, permettendo a qualsiasi utente autenticato di **cancellare** persone — operazione riservata solo agli `admin`.
+
+<div class="grid grid-cols-2 gap-3 mt-4 text-xs">
+
+<div>
+
+### ❌ Vulnerabile — `DocResource.java`
+
+```java {3}
+@DELETE
+@Path("/person/delete/{id}")
+@RolesAllowed({ "admin", "user" }) // ← user non dovrebbe cancellare!
+@Transactional
+public Response deletePerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        return Response.status(FORBIDDEN).build();
+    }
+    person.delete();
+    return Response.ok().build();
+}
+```
+
+</div>
+
+<div>
+
+### ✅ Soluzione
+
+```java {3,4}
+@DELETE
+@Path("/person/delete/{id}")
+// SOLUTION (3): solo 'admin' può cancellare
+@RolesAllowed({ "admin" })
+@Transactional
+public Response deletePerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        return Response.status(FORBIDDEN).build();
+    }
+    person.delete();
+    return Response.ok().build();
+}
+```
+
+</div>
+
+</div>
+
+<div class="mt-3 bg-red-900 bg-opacity-20 rounded p-2 text-xs border border-red-800">
+  🎯 <strong>Principio violato:</strong> Least Privilege — un utente ottiene più permessi di quelli necessari al suo ruolo.
+</div>
+
+---
+layout: default
+---
+
+# Vuln (4) — Broken Object Authorization <span class="text-sm font-normal text-orange-400 ml-2">BOLA · GET /doc/person/find/{id}</span>
+
+**Il problema:** anche se l'utente è autenticato, non viene verificato se ha il ruolo minimo richiesto **dalla singola risorsa** (`person.getMinRole()`). La fix incorpora anche la (1).
+
+<div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+
+<div>
+
+### ❌ Vulnerabile — `DocResource.java`
+
+```java
+@RolesAllowed({ "admin", "user" })
+public Response findPerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        return Response.status(NOT_FOUND).build(); // vuln (1)
+    }
+    // Nessun controllo su person.getMinRole()!
+    return Response.ok(person.toDTO()).build();
+}
+```
+
+</div>
+
+<div>
+
+### ✅ Soluzione (fix 1 + 4)
+
+```java
+@RolesAllowed({ "admin", "user" })
+public Response findPerson(@PathParam("id") Long id) {
+    Person person = this.personRepository.findById(id);
+    if (person == null) {
+        return Response.status(FORBIDDEN).build(); // fix (1)
+    }
+    // SOLUTION (4): verifica il minRole della risorsa
+    if (person.getMinRole() == null || securityIdentity
+            .getRoles().contains(person.getMinRole())) {
+        return Response.ok(person.toDTO()).build();
+    }
+    return Response.status(FORBIDDEN).build();
+}
+```
+
+</div>
+
+</div>
+
+<div class="mt-3 bg-blue-900 bg-opacity-20 rounded p-2 text-xs border border-blue-800">
+  💡 La soluzione della (4) ingloba anche la fix della (1) — i due problemi vivono nello stesso metodo.
+</div>
+
+---
+layout: default
+---
+
+# Vuln (5) — Missing Authentication <span class="text-sm font-normal text-orange-400 ml-2">Access Control · GET /doc/example.md</span>
+
+**Il problema:** il metodo ha `@SecurityRequirement` (solo documentazione Swagger) ma **manca di `@RolesAllowed`**, rendendolo accessibile senza alcuna autenticazione.
+
+<div class="grid grid-cols-2 gap-3 mt-4 text-xs">
+
+<div>
+
+### ❌ Vulnerabile — `DocResource.java`
+
+```java
+@GET
+@Path("/example.md")
+@SecurityRequirement(name = "SecurityScheme")
+// @RolesAllowed mancante!
+// Chiunque, anche non autenticato, può chiamarlo
+public Response markdownExample() throws IOException {
+    return Response.ok(
+        processDocument(DocConfig.TYPE_MD)
+    ).build();
+}
+```
+
+</div>
+
+<div>
+
+### ✅ Soluzione
+
+```java
+@GET
+@Path("/example.md")
+@SecurityRequirement(name = "SecurityScheme")
+// SOLUTION (5): aggiungiamo i ruoli autorizzati.
+// 'guest' è il ruolo minimo previsto dalle specifiche
+@RolesAllowed({ "admin", "user", "guest" })
+public Response markdownExample() throws IOException {
+    return Response.ok(
+        processDocument(DocConfig.TYPE_MD)
+    ).build();
+}
+```
+
+</div>
+
+</div>
+
+<div class="mt-3 bg-yellow-900 bg-opacity-20 rounded p-2 text-xs border border-yellow-800">
+  ⚠️ <strong>Attenzione:</strong> <code>@SecurityRequirement</code> serve solo per la documentazione OpenAPI — <strong>non applica alcun controllo di sicurezza reale</strong>. Serve sempre <code>@RolesAllowed</code>.
+</div>
+
+---
+layout: default
+---
+
+# Vuln (X) — Hidden Vulnerability 🎁 <span class="text-sm font-normal text-purple-400 ml-2">BONUS · PUT /person/add</span>
+
+**Il problema:** un metodo `PUT` alternativo per aggiungere persone è rimasto attivo **senza alcun controllo di autenticazione**. Non è coperto dai test — va trovato analizzando il codice.
+
+<div class="grid grid-cols-2 gap-3 mt-4 text-xs">
+
+<div>
+
+### ❌ Vulnerabile — `PersonResource.java`
+
+```java
+@PUT
+@Path("/person/add")
+@Transactional
+// Nessun @RolesAllowed — nessun @SecurityRequirement
+// Chiunque può aggiungere persone al database!
+public Response addPersonPut(
+        AddPersonRequestDTO request) {
+    return this.addPerson(request);
+}
+```
+
+</div>
+
+<div>
+
+### ✅ Soluzione: rimozione completa
+
+```java
+// SOLUTION (X): il metodo addPersonPut() è rimasto
+// abilitato per errore senza controllo di autorizzazione.
+//
+// La soluzione corretta è rimuoverlo completamente:
+// esiste già addPersonPost() con i controlli appropriati.
+//
+// ← metodo eliminato
+```
+
+</div>
+
+</div>
+
+<div class="mt-3 bg-purple-900 bg-opacity-20 rounded p-2 text-xs border border-purple-800">
+  🎁 <strong>Lezione:</strong> API dimenticate o duplicate sono una fonte comune di vulnerabilità. Revisioni regolari del codice e inventario degli endpoint aiutano a individuarle.
+</div>
+
+---
+layout: default
+---
+
+# Approccio TDD: prima i test, poi il codice
+
+Il laboratorio segue il **Test-Driven Development**: i test di sicurezza sono scritti prima e **falliscono** finché le vulnerabilità non vengono corrette.
+
+<div class="grid grid-cols-2 gap-4 mt-4">
+
+<div class="text-center">
+
+### ❌ Prima della fix
+
+```bash
+mvn test
+```
+
+<div class="bg-red-900 bg-opacity-30 border border-red-700 rounded p-3 mt-2 text-xs font-mono text-left">
+Tests run: 11, Failures: 6<br/>
+<br/>
+<span class="text-red-400">FAIL</span> testFindPersonUser<br/>
+<span class="text-red-400">FAIL</span> testListPersonUser<br/>
+<span class="text-red-400">FAIL</span> testListPersonUserHtml<br/>
+<span class="text-red-400">FAIL</span> testDeletePersonUser<br/>
+<span class="text-red-400">FAIL</span> testFindPersonDocUser<br/>
+<span class="text-red-400">FAIL</span> testMarkdownGuest
+</div>
+
+</div>
+
+<div class="text-center">
+
+### ✅ Dopo la fix
+
+```bash
+mvn test
+```
+
+<div class="bg-green-900 bg-opacity-30 border border-green-700 rounded p-3 mt-2 text-xs font-mono text-left">
+Tests run: 11, Failures: 0<br/>
+<br/>
+<span class="text-green-400">PASS</span> testFindPersonUser<br/>
+<span class="text-green-400">PASS</span> testListPersonUser<br/>
+<span class="text-green-400">PASS</span> testListPersonUserHtml<br/>
+<span class="text-green-400">PASS</span> testDeletePersonUser<br/>
+<span class="text-green-400">PASS</span> testFindPersonDocUser<br/>
+<span class="text-green-400">PASS</span> testMarkdownGuest
+</div>
+
 </div>
 
 </div>
@@ -538,75 +743,44 @@ layout: default
 
 <div class="bg-gray-800 rounded-xl p-4">
   <div class="text-3xl mb-2">1️⃣</div>
-  <div class="font-bold text-blue-400">Esplora</div>
-  <div class="mt-2 text-gray-300">Clona il repository, avvia l'applicazione e analizza le API disponibili con Swagger UI o curl</div>
+  <div class="font-bold text-blue-400">Setup</div>
+  <div class="mt-2 text-gray-300 text-xs">
+    Clona il repo e avvia con <code>mvn quarkus:dev</code>. Esegui i test: vedrai 6 fallimenti.
+  </div>
 </div>
 
 <div class="bg-gray-800 rounded-xl p-4">
   <div class="text-3xl mb-2">2️⃣</div>
-  <div class="font-bold text-yellow-400">Attacca</div>
-  <div class="mt-2 text-gray-300">Prova a sfruttare le vulnerabilità: modifica gli ID, chiama endpoint admin, manipola i token JWT</div>
+  <div class="font-bold text-yellow-400">Analizza & Attacca</div>
+  <div class="mt-2 text-gray-300 text-xs">
+    Cerca i commenti <code>// VULNERABILITY: (n)</code>. Prova a sfruttare ogni falla con curl o Swagger UI.
+  </div>
 </div>
 
 <div class="bg-gray-800 rounded-xl p-4">
   <div class="text-3xl mb-2">3️⃣</div>
-  <div class="font-bold text-green-400">Correggi</div>
-  <div class="mt-2 text-gray-300">Implementa la soluzione: aggiungi i controlli di autorizzazione mancanti e verifica che gli attacchi non funzionino più</div>
+  <div class="font-bold text-green-400">Correggi & Verifica</div>
+  <div class="mt-2 text-gray-300 text-xs">
+    Applica le fix una alla volta. Riesegui i test finché tutti e 11 passano. Poi cerca la (X)!
+  </div>
 </div>
 
 </div>
 
-<div class="mt-6 bg-blue-900 bg-opacity-30 rounded-lg p-4 border border-blue-600 text-sm">
-  💡 <strong>Suggerimento:</strong> Prova a risolvere le vulnerabilità da solo, poi confrontale con quelle sul repository.
+<div class="mt-5 grid grid-cols-2 gap-3 text-xs">
+
+<div class="bg-gray-800 rounded p-3 border-l-4 border-blue-500">
+  <strong class="text-blue-400">File da modificare</strong><br/>
+  <code>PersonResource.java</code> — vuln 1, X<br/>
+  <code>PersonRepository.java</code> — vuln 2<br/>
+  <code>DocResource.java</code> — vuln 3, 4, 5
 </div>
 
----
-layout: default
----
-
-# Checklist di Verifica
-
-Usa questa lista per verificare che le tue fix siano complete:
-
-<div class="grid grid-cols-2 gap-4 mt-4 text-sm">
-
-<div>
-
-### Controllo Accessi
-- [ ] Ogni endpoint verifica l'autenticazione
-- [ ] Ogni operazione su risorse verifica l'ownership
-- [ ] Gli endpoint admin verificano il ruolo `ADMIN`
-- [ ] Il deny-by-default è il comportamento predefinito
-
-</div>
-
-<div>
-
-### Token & Sessioni
-- [ ] I JWT hanno una scadenza breve (`exp`)
-- [ ] I claims JWT sono validati lato server
-- [ ] Il logout invalida effettivamente la sessione
-- [ ] Non si fidano dei dati del client senza verifica
-
-</div>
-
-<div>
-
-### Test
-- [ ] Esiste un test che verifica l'IDOR e fallisce pre-fix
-- [ ] Esiste un test per l'accesso admin non autorizzato
-- [ ] I test passano dopo le correzioni
-- [ ] I test sono integrati nella pipeline CI
-
-</div>
-
-<div>
-
-### Monitoring
-- [ ] I tentativi di accesso negato vengono loggati
-- [ ] Il log include user, risorsa e timestamp
-- [ ] Esiste un alert per accessi ripetuti negati
-
+<div class="bg-gray-800 rounded p-3 border-l-4 border-green-500">
+  <strong class="text-green-400">Come verificare le soluzioni</strong><br/>
+  Cerca: <code>// VULNERABILITY: (n)</code> nel codice<br/>
+  Confronta con il branch <code>solution</code><br/>
+  oppure cerca: <code>// SOLUTION: (n)</code>
 </div>
 
 </div>
@@ -654,22 +828,27 @@ layout: end
 
 <div class="flex gap-8 items-center justify-between mt-6">
 
-  <!-- Colonna sinistra: testo -->
   <div class="flex-1">
     <div class="text-gray-400 mt-2">
       Domande? Apri una issue su <strong>GitHub</strong>
     </div>
-    <div class="mt-6">
+    <div class="mt-4">
       <a href="https://github.com/lab-sca/lab-broken-access-control"
          class="text-blue-400 hover:text-blue-300 text-sm">
         🔗 github.com/lab-sca/lab-broken-access-control
       </a>
     </div>
+    <div class="mt-8 text-xs text-gray-600">
+      Basato su OWASP Top 10:2025 · OWASP API Security Top 10:2023 · Licenza MIT
+    </div>
   </div>
 
-  <!-- Colonna destra: QR code -->
   <div class="flex-1 flex flex-col items-center justify-center">
     <img src="/qrcode.svg" alt="QR Code" class="w-48 h-48"/>
+    <div class="text-xs text-gray-500 mt-2 text-center">
+      github.com/lab-sca/lab-broken-access-control
+    </div>
   </div>
 
 </div>
+

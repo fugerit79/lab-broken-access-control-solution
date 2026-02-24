@@ -11,19 +11,24 @@ layout: default
 # Struttura del Laboratorio
 
 <div style="display: flex; justify-content: center;">
-<div style="transform: scale(0.75); transform-origin: top center;">
+<div style="transform: scale(1.0); transform-origin: top center;">
 
 ```mermaid
 graph TD
-    MAIN["📦 lab-broken-access-control\n(Repository principale)"]
-    Q["🔷 lab-broken-access-control-quarkus\n(Versione Quarkus)"]
-    S["🍃 lab-broken-access-control-springboot\n(Versione Spring Boot)"]
+    MAIN["📦 lab-broken-access-control
+(Repository principale)"]
+    Q["🔷 lab-broken-access-control-quarkus
+(Versione Quarkus)"]
+    S["🍃 lab-broken-access-control-springboot
+(Versione Spring Boot)"]
     
     MAIN -->|scegli| Q
     MAIN -->|scegli| S
     
-    Q --> QT["Quarkus · MicroProfile\nJAX-RS · SmallRye JWT · Panache"]
-    S --> ST["Spring Boot · Spring MVC\nOAuth2 Resource Server · Spring Data JPA"]
+    Q --> QT["Quarkus · MicroProfile
+JAX-RS · SmallRye JWT · Panache"]
+    S --> ST["Spring Boot · Spring MVC
+OAuth2 Resource Server · Spring Data JPA"]
     
     style MAIN fill:#1971c2,color:#fff
     style Q fill:#4263eb,color:#fff
@@ -93,7 +98,7 @@ GET /person/10002 → 403 Forbidden   ← questo ID esiste! 😱
 
 **File:** `PersonResource.java`
 
-```java {5}
+```java {7-8}
 @GET
 @Path("/person/find/{id}")
 @RolesAllowed({ "admin", "user" })
@@ -122,7 +127,7 @@ layout: default
 
 **File:** `PersonResource.java`
 
-```java {7,8}
+```java {7-10}
 @GET
 @Path("/person/find/{id}")
 @RolesAllowed({ "admin", "user" })
@@ -219,7 +224,7 @@ layout: default
 
 **File:** `DocResource.java`
 
-```java {4}
+```java {3}
 @DELETE
 @Path("/person/delete/{id}")
 @RolesAllowed({ "admin", "user" }) // ← 'user' non dovrebbe poter cancellare!
@@ -248,7 +253,7 @@ layout: default
 
 **File:** `DocResource.java`
 
-```java {4,5}
+```java {3-5}
 @DELETE
 @Path("/person/delete/{id}")
 // SOLUTION (3): rimuoviamo il ruolo 'user'.
@@ -286,7 +291,7 @@ layout: default
 
 **File:** `DocResource.java`
 
-```java {7,9,10}
+```java {9,10,11}
 @GET
 @Path("/person/find/{id}")
 @RolesAllowed({ "admin", "user" })
@@ -358,13 +363,11 @@ layout: default
 
 **File:** `DocResource.java`
 
-```java {4,5,6}
+```java {3-5}
 @GET
 @Path("/example.md")
 @SecurityRequirement(name = "SecurityScheme")
 // @RolesAllowed mancante!
-// @SecurityRequirement documenta solo l'endpoint in Swagger
-// ma NON applica alcun controllo di sicurezza reale
 public Response markdownExample() throws IOException {
     return Response.status(Response.Status.OK)
                    .entity(processDocument(DocConfig.TYPE_MD))
@@ -386,7 +389,7 @@ layout: default
 
 **File:** `DocResource.java`
 
-```java {4,5,6}
+```java {3-7}
 @GET
 @Path("/example.md")
 @SecurityRequirement(name = "SecurityScheme")
@@ -487,12 +490,12 @@ mvn test
 <div class="bg-red-900 bg-opacity-30 border border-red-700 rounded p-3 mt-2 text-xs font-mono text-left">
 Tests run: 11, Failures: 6<br/>
 <br/>
-<span class="text-red-400">FAIL</span> testFindPersonUser<br/>
-<span class="text-red-400">FAIL</span> testListPersonUser<br/>
-<span class="text-red-400">FAIL</span> testListPersonUserHtml<br/>
-<span class="text-red-400">FAIL</span> testDeletePersonUser<br/>
-<span class="text-red-400">FAIL</span> testFindPersonDocUser<br/>
-<span class="text-red-400">FAIL</span> testMarkdownGuest
+<span class="text-red-400">FAIL</span> testFindPersonKoNotFound<br/>
+<span class="text-red-400">FAIL</span> testOkMarkDownConVerificaContenutoUser<br/>
+<span class="text-red-400">FAIL</span> testListPersonsResultKo<br/>
+<span class="text-red-400">FAIL</span> testDeletePersonUserKo<br/>
+<span class="text-red-400">FAIL</span> testFindPersonKoForbidden<br/>
+<span class="text-red-400">FAIL</span> testMarkdown401NoAuthorizationBearer
 </div>
 
 </div>
@@ -508,12 +511,12 @@ mvn test
 <div class="bg-green-900 bg-opacity-30 border border-green-700 rounded p-3 mt-2 text-xs font-mono text-left">
 Tests run: 11, Failures: 0<br/>
 <br/>
-<span class="text-green-400">PASS</span> testFindPersonUser<br/>
-<span class="text-green-400">PASS</span> testListPersonUser<br/>
-<span class="text-green-400">PASS</span> testListPersonUserHtml<br/>
-<span class="text-green-400">PASS</span> testDeletePersonUser<br/>
-<span class="text-green-400">PASS</span> testFindPersonDocUser<br/>
-<span class="text-green-400">PASS</span> testMarkdownGuest
+<span class="text-green-400">PASS</span> testFindPersonKoNotFound<br/>
+<span class="text-green-400">PASS</span> testOkMarkDownConVerificaContenutoUser<br/>
+<span class="text-green-400">PASS</span> testListPersonsResultKo<br/>
+<span class="text-green-400">PASS</span> testDeletePersonUserKo<br/>
+<span class="text-green-400">PASS</span> testFindPersonKoForbidden<br/>
+<span class="text-green-400">PASS</span> testMarkdown401NoAuthorizationBearer
 </div>
 
 </div>

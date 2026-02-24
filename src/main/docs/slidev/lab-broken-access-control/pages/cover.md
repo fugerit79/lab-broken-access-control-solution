@@ -6,6 +6,8 @@ info: |
   ## Secure Code Academy
   Laboratorio su Broken Access Control (OWASP Top 10 #1)
 highlighter: shiki
+shikiConfig:
+  theme: 'one-dark-pro'
 lineNumbers: true
 drawings:
   persist: false

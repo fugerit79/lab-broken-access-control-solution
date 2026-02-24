@@ -1,0 +1,7 @@
+.slidev-code .line.dimmed {
+    opacity: 0.6 !important;
+}
+
+.language-code{
+    opacity: 0.6 !important;
+}

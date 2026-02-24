@@ -42,7 +42,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@main
         with:
-          node-version: '20'  # Puoi scegliere la versione di Node.js desiderata
+          node-version: '20'
 
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
@@ -50,17 +50,26 @@ jobs:
       - name: Verify Mermaid CLI installation
         run: mmdc --version
 
-      - name: Creates maven tartget
+      - name: Install Playwright dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Creates maven target
         run: mvn clean install
 
       - name: Copy html
         run: mkdir target/site/; cp -fr src/main/docs/html/* target/site/
 
       - name: Build slidev
-        run: cd src/main/docs/slidev/lab-broken-access-control; npm install; npm run build -- --base /${{github.event.repository.name}}/slidev
+        run: cd src/main/docs/slidev/lab-broken-access-control; npm install; npm i -D playwright-chromium; npm run build -- --base /${{github.event.repository.name}}/slidev
+
+      - name: Export slidev to PDF
+        run: cd src/main/docs/slidev/lab-broken-access-control; npx slidev export --output lab-broken-access-control.pdf --format pdf
 
       - name: Copy slidev
         run: cp -fr src/main/docs/slidev/lab-broken-access-control/dist target/site/slidev
+
+      - name: Copy PDF
+        run: cp src/main/docs/slidev/lab-broken-access-control/lab-broken-access-control.pdf target/site/lab-broken-access-control.pdf
 
       - name: Setup Pages
         uses: actions/configure-pages@main
@@ -68,7 +77,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@main
         with:
-          # Upload entire repository
           path: './target/site'
 
       - name: Deploy to GitHub Pages

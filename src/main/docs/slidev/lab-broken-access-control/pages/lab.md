@@ -408,6 +408,54 @@ public Response markdownExample() throws IOException {
 </div>
 
 ---
+layout: default
+---
+
+# Vuln (5) — Missing Authentication <span class="text-sm font-normal text-blue-400 ml-2">💡 Spring Boot</span>
+
+**La soluzione varia a seconda del framework.** In Spring Boot abbiamo usato UN  `SecurityFilterChain` per gestire i path permessi a tutti.
+
+**Versione Spring Boot** — `SecurityConfig.java` ❌ Vulnerabile
+```java {6}
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/demo/**").permitAll()
+    .requestMatchers("/h2-console/**").permitAll()
+    .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+    .requestMatchers("/actuator/health").permitAll()
+    .requestMatchers("/doc/example.md").permitAll()  // ← chiunque può accedere!
+    .anyRequest().authenticated()
+)
+```
+
+<div class="mt-4 bg-red-900 bg-opacity-20 rounded p-3 text-xs border border-red-800">
+  🎯 <strong>Effetto:</strong> l'endpoint <code>/doc/example.md</code> è dichiarato esplicitamente come pubblico nel <code>SecurityFilterChain</code> — qualsiasi richiesta, anche non autenticata, viene accettata.
+</div>
+
+---
+layout: default
+---
+
+# Vuln (5) — Missing Authentication <span class="text-sm font-normal text-blue-400 ml-2">💡 Spring Boot ✅</span>
+
+**La fix:** rimuovere la riga `permitAll()` per `/doc/example.md` — l'endpoint ricadrà automaticamente nella regola `anyRequest().authenticated()`.
+
+**Versione Spring Boot** — `SecurityConfig.java` ✅ Soluzione
+```java {6}
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/demo/**").permitAll()
+    .requestMatchers("/h2-console/**").permitAll()
+    .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+    .requestMatchers("/actuator/health").permitAll()
+    // SOLUTION (5): rimosso /doc/example.md — ora ricade in anyRequest().authenticated()
+    .anyRequest().authenticated()
+)
+```
+
+<div class="mt-4 bg-green-900 bg-opacity-20 rounded p-3 text-xs border border-green-800">
+  ✅ <strong>Principio generale:</strong> indipendentemente dal framework, la regola è sempre <strong>deny by default</strong>. Ogni endpoint pubblico dovrebbe essere una eccezione esplicita e consapevole, non il comportamento di default.
+</div>
+
+---
 layout: section
 ---
 

@@ -4,6 +4,8 @@ Un laboratorio educativo completo per testare e comprendere le vulnerabilità [B
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](https://opensource.org/licenses/MIT)
 [![GitHub pages](https://img.shields.io/badge/GitHub-PAGES-blue.svg)](https://lab-sca.github.io/lab-broken-access-control/)
+[![Slides HTML](https://img.shields.io/badge/Slides-HTML-orange.svg)](https://lab-sca.github.io/lab-broken-access-control/slidev/)
+[![Slides PDF](https://img.shields.io/badge/Slides-PDF-red.svg)](https://lab-sca.github.io/lab-broken-access-control/lab-broken-access-control.pdf)
 [![Fork Me](https://img.shields.io/github/forks/lab-sca/lab-broken-access-control?style=social&label=Fork)](https://github.com/lab-sca/lab-broken-access-control/fork)
 
 ## 🚀 Scegli il tuo Framework
